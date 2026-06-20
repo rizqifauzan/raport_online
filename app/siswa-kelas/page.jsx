@@ -165,7 +165,7 @@ export default function SiswaPage() {
             <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => { setLembaga('TPQ'); handleLembaga('TPQ'); }}>TPQ</button>
             <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => { setLembaga('Madin'); handleLembaga('Madin'); }}>Madin</button>
           </div>
-          <div className="field select">T.A. 2025/2026</div>
+
           <button className="icon-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/>
@@ -290,7 +290,7 @@ export default function SiswaPage() {
                       <td>
                         <div className="who-cell">
                           <div className="avatar" style={{background:s.color}}>{getInitials(s.nama)}</div>
-                          <div><b>{s.nama}</b><span>Lahir: {s.lahir}</span></div>
+                          <div><b>{s.nama}</b></div>
                         </div>
                       </td>
                       <td className="num">{s.id}</td>

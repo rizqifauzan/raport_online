@@ -110,7 +110,7 @@ export default function AkhlaqPage() {
             <button className={periode==='UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
             <button className={periode==='UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
           </div>
-          <div className="field select">T.A. 2025/2026</div>
+
         </header>
 
         <div className="content">

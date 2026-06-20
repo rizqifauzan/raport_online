@@ -8,7 +8,7 @@ const STATUS_OPTS = ['Naik', 'Tidak Naik', 'Lulus'];
 const STATUS_BADGE = { Naik: 'b-green', 'Tidak Naik': 'b-amber', Lulus: 'b-violet' };
 
 export default function KenaikanPage() {
-  const { lembaga, setLembaga, kelas, students, ujian, ujianNilai, kenaikan, setKenaikanEntry, resetKenaikan, locks, lockKelas, unlockKelas, isHistory } = useStore();
+  const { lembaga, setLembaga, kelas, students, ujian, ujianNilai, kenaikan, kenaikanTarget, setKenaikanEntry, setKenaikanTarget, resetKenaikan, locks, lockKelas, unlockKelas, isHistory } = useStore();
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
@@ -33,6 +33,37 @@ export default function KenaikanPage() {
   };
 
   const getStatus = (studentId) => kenaikan[studentId] ?? 'Naik';
+
+  // Default target berdasarkan status
+  function defaultTarget(studentId, status) {
+    if (status === 'Naik') {
+      const nextKelas = kelasList.find(k => k.nomor === (activeKelas?.nomor ?? 0) + 1);
+      return nextKelas?.label ?? '';
+    }
+    if (status === 'Tidak Naik') return activeKelas?.label ?? '';
+    return '';
+  }
+
+  function getTarget(studentId) {
+    const status = getStatus(studentId);
+    if (status === 'Lulus') return '';
+    return kenaikanTarget[studentId] ?? defaultTarget(studentId, status);
+  }
+
+  function handleSetStatus(studentId, newStatus) {
+    if (locked || isHistory) return;
+    setKenaikanEntry(studentId, newStatus);
+    // Auto-set target default saat status berubah, kecuali sudah pernah diisi manual
+    if (newStatus !== 'Lulus') {
+      const currentManual = kenaikanTarget[studentId];
+      if (currentManual == null) {
+        // belum pernah di-override, biarkan defaultTarget handle
+      } else {
+        // sudah diisi manual, reset ke default baru
+        setKenaikanTarget(studentId, defaultTarget(studentId, newStatus));
+      }
+    }
+  }
 
   function handleSimpan() {
     setShowConfirm(false);
@@ -77,7 +108,7 @@ export default function KenaikanPage() {
             <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => handleLembaga('TPQ')}>TPQ</button>
             <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => handleLembaga('Madin')}>Madin</button>
           </div>
-          <div className="field select">T.A. 2025/2026</div>
+
         </header>
 
         <div className="content">
@@ -142,13 +173,16 @@ export default function KenaikanPage() {
                     <th style={{width:44}}>No</th>
                     <th>Nama Santri</th>
                     <th style={{width:110}}>Nilai Akhir UAS</th>
-                    <th style={{width:160}}>Status Kenaikan</th>
+                    <th style={{width:180}}>Status Kenaikan</th>
+                    <th>Kelas Tujuan</th>
                   </tr>
                 </thead>
                 <tbody>
                   {kelasSiswa.map((s, i) => {
                     const na = getNilaiAkhir(s.id);
                     const status = getStatus(s.id);
+                    const target = getTarget(s.id);
+                    const showTarget = status !== 'Lulus';
                     return (
                       <tr key={s.id}>
                         <td className="num muted">{i + 1}</td>
@@ -173,12 +207,33 @@ export default function KenaikanPage() {
                                   fontWeight: status === opt ? 800 : 500,
                                   transition:'opacity .15s',
                                 }}
-                                onClick={() => { if (!locked && !isHistory) setKenaikanEntry(s.id, opt); }}
+                                onClick={() => handleSetStatus(s.id, opt)}
                               >
                                 {opt}
                               </button>
                             ))}
                           </div>
+                        </td>
+                        <td>
+                          {showTarget ? (
+                            <>
+                              <input
+                                list={`kelas-opts-${s.id}`}
+                                className="kn-target-input"
+                                value={target}
+                                placeholder="Ketik atau pilih kelas..."
+                                disabled={locked || isHistory}
+                                onChange={e => setKenaikanTarget(s.id, e.target.value)}
+                              />
+                              <datalist id={`kelas-opts-${s.id}`}>
+                                {kelas.filter(k => k.lembaga === lembaga).map(k => (
+                                  <option key={k.id} value={k.label} />
+                                ))}
+                              </datalist>
+                            </>
+                          ) : (
+                            <span className="muted">—</span>
+                          )}
                         </td>
                       </tr>
                     );

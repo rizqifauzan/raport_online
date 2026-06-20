@@ -14,6 +14,7 @@ export function StoreProvider({ children }) {
   const [ujianNilai, setUjianNilai] = useState(INITIAL_DATA.ujianNilai);
   const [karakter, setKarakter] = useState(INITIAL_DATA.karakter);
   const [kenaikan, setKenaikan] = useState(INITIAL_DATA.kenaikan);
+  const [kenaikanTarget, setKenaikanTargetState] = useState({});
 
   // locks[kelasId][periode] = true
   const [locks, setLocks] = useState({});
@@ -124,9 +125,16 @@ export function StoreProvider({ children }) {
     if (s && isLocked(s.kelasId, 'UAS')) return;
     setKenaikan(prev => ({ ...prev, [studentId]: status }));
   }
+  function setKenaikanTarget(studentId, val) {
+    if (snap) return;
+    const s = students.find(s2 => s2.id === studentId);
+    if (s && isLocked(s.kelasId, 'UAS')) return;
+    setKenaikanTargetState(prev => ({ ...prev, [studentId]: val }));
+  }
   function resetKenaikan() {
     if (snap) return;
     setKenaikan({});
+    setKenaikanTargetState({});
   }
 
   // Tahun ajaran
@@ -141,6 +149,7 @@ export function StoreProvider({ children }) {
       ujianNilai,
       karakter,
       kenaikan,
+      kenaikanTarget,
       locks,
     };
     setHistory(prev => [...prev, snapshot]);
@@ -149,6 +158,7 @@ export function StoreProvider({ children }) {
     setUjianNilai({});
     setKarakter({});
     setKenaikan({});
+    setKenaikanTargetState({});
     setLocks({});
     setPeriode('UTS');
     setViewingTaId(null);
@@ -166,7 +176,8 @@ export function StoreProvider({ children }) {
       ujian:      snap ? snap.ujian      : ujian,
       ujianNilai: snap ? snap.ujianNilai : ujianNilai,
       karakter:   snap ? snap.karakter   : karakter,
-      kenaikan:   snap ? snap.kenaikan   : kenaikan,
+      kenaikan:       snap ? snap.kenaikan       : kenaikan,
+      kenaikanTarget: snap ? (snap.kenaikanTarget ?? {}) : kenaikanTarget,
 
       // Locks (only current T.A. is lockable; history is always read-only)
       locks,
@@ -181,7 +192,7 @@ export function StoreProvider({ children }) {
       addUjian, removeUjian, updateUjian,
       setUjianNilaiEntry,
       updateKarakter,
-      setKenaikanEntry, resetKenaikan,
+      setKenaikanEntry, setKenaikanTarget, resetKenaikan,
 
       // History
       isHistory: !!snap,

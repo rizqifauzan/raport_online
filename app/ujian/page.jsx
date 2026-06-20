@@ -95,7 +95,7 @@ export default function UjianPage() {
             <button className={periode === 'UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
             <button className={periode === 'UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
           </div>
-          <div className="field select">T.A. 2025/2026</div>
+
           <button className="icon-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
               <path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/>

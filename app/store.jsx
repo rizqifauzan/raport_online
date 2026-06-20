@@ -46,6 +46,10 @@ export function StoreProvider({ children }) {
     if (snap) return;
     setStudents(prev => prev.filter(s => s.id !== id));
   }
+  function updateStudent(id, patch) {
+    if (snap) return;
+    setStudents(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+  }
 
   // Kelas CRUD
   function addClass(k) {
@@ -186,13 +190,16 @@ export function StoreProvider({ children }) {
       isLocked,
 
       // Mutations
-      addStudent, removeStudent,
+      addStudent, removeStudent, updateStudent,
       updateGrade,
       addClass, updateClass, removeClass,
       addUjian, removeUjian, updateUjian,
       setUjianNilaiEntry,
       updateKarakter,
       setKenaikanEntry, setKenaikanTarget, resetKenaikan,
+
+      // Raw current T.A. data (always current, regardless of viewingTaId)
+      currentTaData: { students, kelas, ujian, ujianNilai, karakter, kenaikan, kenaikanTarget },
 
       // History
       isHistory: !!snap,

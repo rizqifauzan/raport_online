@@ -40,14 +40,21 @@ export default function Sidebar() {
           </svg>
           Dashboard
         </Link>
-        <Link href="/siswa-kelas" className={active('/siswa')}>
+        <Link href="/siswa" className={active('/siswa')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="9" cy="8" r="3.2"/>
+            <path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/>
+          </svg>
+          Data Siswa
+          <span className="pill">{totalSantri}</span>
+        </Link>
+        <Link href="/siswa-kelas" className={active('/siswa-kelas')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="9" cy="8" r="3.2"/>
             <path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/>
             <path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/>
           </svg>
           Siswa &amp; Kelas
-          <span className="pill">{totalSantri}</span>
         </Link>
         <Link href="/ujian" className={active('/ujian')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

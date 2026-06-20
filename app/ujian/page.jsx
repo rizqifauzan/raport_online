@@ -2,12 +2,10 @@
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS } from '../../lib/data';
-
 export default function UjianPage() {
-  const { lembaga, setLembaga, ujian, ujianNilai, addUjian, removeUjian, updateUjian } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, ujian, ujianNilai, addUjian, removeUjian, updateUjian } = useStore();
 
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
+  const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
   const [toast, setToast] = useState('');
   const [toastType, setToastType] = useState('ok');
@@ -24,21 +22,21 @@ export default function UjianPage() {
   }
 
   function handleLembaga(l) {
-    const newKelas = KELAS.filter(k => k.lembaga === l);
+    const newKelas = kelas.filter(k => k.lembaga === l);
     setLembaga(l);
     setActiveKelasId(newKelas[0]?.id ?? '');
   }
 
-  const activeKelas = KELAS.find(k => k.id === activeKelasId);
+  const activeKelas = kelas.find(k => k.id === activeKelasId);
 
   const kelasSummary = useMemo(() => kelasList.map(k => ({
     ...k,
-    jumlah: ujian.filter(u => u.kelasId === k.id).length,
-  })), [kelasList, ujian]);
+    jumlah: ujian.filter(u => u.kelasId === k.id && u.periode === periode).length,
+  })), [kelasList, ujian, periode]);
 
   const ujianKelas = useMemo(
-    () => ujian.filter(u => u.kelasId === activeKelasId),
-    [ujian, activeKelasId]
+    () => ujian.filter(u => u.kelasId === activeKelasId && u.periode === periode),
+    [ujian, activeKelasId, periode]
   );
 
   function openAdd() {
@@ -61,7 +59,7 @@ export default function UjianPage() {
       showToast('Ujian berhasil diperbarui');
     } else {
       const id = `ujian-${Date.now()}`;
-      addUjian({ id, kelasId: activeKelasId, nama: form.nama.trim(), tipe: form.tipe });
+      addUjian({ id, kelasId: activeKelasId, nama: form.nama.trim(), tipe: form.tipe, periode });
       showToast('Ujian berhasil ditambahkan');
     }
     setShowModal(false);
@@ -90,6 +88,10 @@ export default function UjianPage() {
           <div className="seg">
             <button className={lembaga === 'TPQ' ? 'on' : ''} onClick={() => handleLembaga('TPQ')}>TPQ</button>
             <button className={lembaga === 'Madin' ? 'on' : ''} onClick={() => handleLembaga('Madin')}>Madin</button>
+          </div>
+          <div className="seg gold">
+            <button className={periode === 'UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
+            <button className={periode === 'UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
           </div>
           <div className="field select">T.A. 2025/2026</div>
           <button className="icon-btn">

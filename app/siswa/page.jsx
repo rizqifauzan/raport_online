@@ -2,7 +2,7 @@
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS, MAPEL, calcNilaiAkhir, getInitials } from '../../lib/data';
+import { MAPEL, calcNilaiAkhir, getInitials } from '../../lib/data';
 
 const COLORS = ['#0d9488','#7c3aed','#2563eb','#16a34a','#d4a056','#dc2626','#0891b2','#9333ea'];
 const PER_PAGE = 7;
@@ -21,10 +21,10 @@ function generateNIS(students) {
 }
 
 export default function SiswaPage() {
-  const { lembaga, setLembaga, students, grades, addStudent, removeStudent } = useStore();
+  const { lembaga, setLembaga, students, grades, kelas, addStudent, removeStudent, addClass, updateClass, removeClass } = useStore();
   const mapelList = MAPEL[lembaga];
 
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
+  const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(new Set());
@@ -35,14 +35,14 @@ export default function SiswaPage() {
 
   // Switch lembaga → reset kelas & halaman
   const handleLembaga = (l) => {
-    const newKelas = KELAS.filter(k => k.lembaga === l);
+    const newKelas = kelas.filter(k => k.lembaga === l);
     setActiveKelasId(newKelas[0]?.id ?? '');
     setSearch('');
     setSelected(new Set());
     setPage(1);
   };
 
-  const activeKelas = KELAS.find(k => k.id === activeKelasId);
+  const activeKelas = kelas.find(k => k.id === activeKelasId);
 
   const kelasSummary = useMemo(() => kelasList.map(k => {
     const klsSiswa = students.filter(s => s.kelasId === k.id);
@@ -80,6 +80,46 @@ export default function SiswaPage() {
     selected.forEach(id => removeStudent(id));
     setSelected(new Set());
     showToast(`${selected.size} santri dihapus`);
+  }
+
+  // Kelas CRUD modal
+  const [showKelasModal, setShowKelasModal] = useState(false);
+  const [editKelasId, setEditKelasId] = useState(null); // null = tambah
+  const [kelasForm, setKelasForm] = useState({ label:'', nomor:'', wali:'', lembaga: lembaga });
+  const [confirmHapusKelasId, setConfirmHapusKelasId] = useState(null);
+
+  function openKelasModal(k = null) {
+    if (k) {
+      setEditKelasId(k.id);
+      setKelasForm({ label: k.label, nomor: k.nomor, wali: k.wali ?? '', lembaga: k.lembaga });
+    } else {
+      setEditKelasId(null);
+      setKelasForm({ label: '', nomor: '', wali: '', lembaga });
+    }
+    setShowKelasModal(true);
+  }
+
+  function handleKelasSubmit(e) {
+    e.preventDefault();
+    if (!kelasForm.label.trim()) return;
+    if (editKelasId) {
+      updateClass(editKelasId, { label: kelasForm.label.trim(), nomor: kelasForm.nomor, wali: kelasForm.wali.trim() });
+      showToast(`Kelas "${kelasForm.label}" berhasil diperbarui`);
+    } else {
+      const id = `${kelasForm.lembaga.toLowerCase().replace(' ','-')}-${Date.now()}`;
+      addClass({ id, lembaga: kelasForm.lembaga, label: kelasForm.label.trim(), nomor: kelasForm.nomor, wali: kelasForm.wali.trim() });
+      showToast(`Kelas "${kelasForm.label}" berhasil ditambahkan`);
+    }
+    setShowKelasModal(false);
+  }
+
+  function handleHapusKelas(id) {
+    const hasSiswa = students.some(s => s.kelasId === id);
+    if (hasSiswa) { showToast('Tidak bisa menghapus kelas yang masih memiliki santri'); return; }
+    removeClass(id);
+    if (activeKelasId === id) setActiveKelasId(kelasList.filter(k=>k.id!==id)[0]?.id ?? '');
+    showToast('Kelas berhasil dihapus');
+    setConfirmHapusKelasId(null);
   }
 
   // Add student modal
@@ -136,10 +176,16 @@ export default function SiswaPage() {
           {/* Class rail */}
           <div className="row between" style={{marginBottom:12}}>
             <div className="section-title">{lembaga} — {kelasList.length} Kelas</div>
-            <button className="btn sm" onClick={openModal}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              Tambah Santri
-            </button>
+            <div className="row" style={{gap:8}}>
+              <button className="btn sm ghost" onClick={() => openKelasModal()}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah Kelas
+              </button>
+              <button className="btn sm" onClick={openModal}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Tambah Santri
+              </button>
+            </div>
           </div>
 
           <div className="class-rail" style={{gridTemplateColumns:`repeat(${kelasList.length},1fr)`}}>
@@ -155,6 +201,19 @@ export default function SiswaPage() {
                 {k.avg !== null && (
                   <div className={`avg score ${scoreClass(k.avg)}`}>{k.avg}</div>
                 )}
+                <div className="card-actions" onClick={e => e.stopPropagation()}>
+                  <button className="icon-btn sm" title="Edit kelas" onClick={() => openKelasModal(k)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                      <path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4z"/>
+                    </svg>
+                  </button>
+                  <button className="icon-btn sm" title="Hapus kelas" style={{color:'var(--red)'}} onClick={() => setConfirmHapusKelasId(k.id)}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -332,6 +391,74 @@ export default function SiswaPage() {
                 <button type="submit" className="btn primary">Tambah Santri</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal kelas */}
+      {showKelasModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowKelasModal(false)}>
+          <div className="modal">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <h3 style={{margin:0}}>{editKelasId ? 'Edit Kelas' : 'Tambah Kelas Baru'}</h3>
+              <button className="icon-btn" onClick={() => setShowKelasModal(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <form onSubmit={handleKelasSubmit}>
+              <div className="form-row-2">
+                <div className="form-row">
+                  <label>Nama Kelas *</label>
+                  <input className="form-input" placeholder="cth. Kelas 1, Kelas A..." value={kelasForm.label} onChange={e => setKelasForm(f=>({...f,label:e.target.value}))} required/>
+                </div>
+                <div className="form-row">
+                  <label>Nomor Urut</label>
+                  <input className="form-input" placeholder="1, 2, 3..." value={kelasForm.nomor} onChange={e => setKelasForm(f=>({...f,nomor:e.target.value}))}/>
+                </div>
+              </div>
+              <div className="form-row-2">
+                <div className="form-row">
+                  <label>Wali Kelas</label>
+                  <input className="form-input" placeholder="Nama ustadz/ustadzah..." value={kelasForm.wali} onChange={e => setKelasForm(f=>({...f,wali:e.target.value}))}/>
+                </div>
+                {!editKelasId && (
+                  <div className="form-row">
+                    <label>Lembaga</label>
+                    <select className="form-input" value={kelasForm.lembaga} onChange={e => setKelasForm(f=>({...f,lembaga:e.target.value}))}>
+                      <option>TPQ</option>
+                      <option>Madin</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn ghost" onClick={() => setShowKelasModal(false)}>Batal</button>
+                <button type="submit" className="btn primary">{editKelasId ? 'Simpan Perubahan' : 'Tambah Kelas'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Konfirmasi hapus kelas */}
+      {confirmHapusKelasId && (
+        <div className="modal-overlay" onClick={() => setConfirmHapusKelasId(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth:400}}>
+            <h3 style={{margin:'0 0 10px'}}>Hapus Kelas?</h3>
+            <p style={{margin:'0 0 20px',fontSize:14,color:'var(--ink-2)'}}>
+              {students.some(s => s.kelasId === confirmHapusKelasId)
+                ? <span style={{color:'var(--red)',fontWeight:700}}>Kelas masih memiliki santri — tidak bisa dihapus.</span>
+                : 'Kelas akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.'}
+            </p>
+            <div className="form-actions">
+              <button className="btn ghost" onClick={() => setConfirmHapusKelasId(null)}>Batal</button>
+              <button
+                className="btn"
+                style={{background:'var(--red)',color:'#fff',opacity: students.some(s=>s.kelasId===confirmHapusKelasId) ? .4 : 1}}
+                disabled={students.some(s=>s.kelasId===confirmHapusKelasId)}
+                onClick={() => handleHapusKelas(confirmHapusKelasId)}
+              >Hapus Kelas</button>
+            </div>
           </div>
         </div>
       )}

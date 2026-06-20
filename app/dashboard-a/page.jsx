@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS, MAPEL, calcNilaiAkhir } from '../../lib/data';
+import { MAPEL, calcNilaiAkhir } from '../../lib/data';
 import { useMemo } from 'react';
 
 function getKenaikanStatus(nilaiAkhir) {
@@ -13,15 +13,15 @@ function getKenaikanStatus(nilaiAkhir) {
 }
 
 export default function DashboardPage() {
-  const { lembaga, setLembaga, periode, setPeriode, students, grades } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, students, grades, kelas } = useStore();
 
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
+  const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const mapelList = MAPEL[lembaga];
 
   const studentStats = useMemo(() => {
     const lembagaStudents = students.filter(s => {
-      const kelas = KELAS.find(k => k.id === s.kelasId);
-      return kelas?.lembaga === lembaga;
+      const sk = kelas.find(k => k.id === s.kelasId);
+      return sk?.lembaga === lembaga;
     });
 
     let totalNilai = 0;
@@ -59,8 +59,8 @@ export default function DashboardPage() {
   const mapelAvg = useMemo(() => {
     return mapelList.map(m => {
       const lembagaStudents = students.filter(s => {
-        const kelas = KELAS.find(k => k.id === s.kelasId);
-        return kelas?.lembaga === lembaga;
+        const sk = kelas.find(k => k.id === s.kelasId);
+        return sk?.lembaga === lembaga;
       });
       const vals = lembagaStudents.map(s => {
         const e = grades[s.id]?.[m.id]?.[periode];
@@ -205,8 +205,8 @@ export default function DashboardPage() {
                       const e = grades[s.id]?.[m.id]?.[periode];
                       return e ? { sum: acc.sum + e.p, n: acc.n + 1 } : acc;
                     }, {sum:0,n:0}));
-                    const praktikVals = students.filter(s => KELAS.find(k=>k.id===s.kelasId)?.lembaga===lembaga).map(s => grades[s.id]?.[m.id]?.[periode]?.p).filter(v=>v!=null);
-                    const tulisVals = students.filter(s => KELAS.find(k=>k.id===s.kelasId)?.lembaga===lembaga).map(s => grades[s.id]?.[m.id]?.[periode]?.t).filter(v=>v!=null);
+                    const praktikVals = students.filter(s => kelas.find(k=>k.id===s.kelasId)?.lembaga===lembaga).map(s => grades[s.id]?.[m.id]?.[periode]?.p).filter(v=>v!=null);
+                    const tulisVals = students.filter(s => kelas.find(k=>k.id===s.kelasId)?.lembaga===lembaga).map(s => grades[s.id]?.[m.id]?.[periode]?.t).filter(v=>v!=null);
                     const avgP = praktikVals.length > 0 ? Math.round(praktikVals.reduce((a,b)=>a+b,0)/praktikVals.length) : 0;
                     const avgT = tulisVals.length > 0 ? Math.round(tulisVals.reduce((a,b)=>a+b,0)/tulisVals.length) : 0;
                     const maxH = 85;
@@ -296,7 +296,7 @@ export default function DashboardPage() {
                     <div className="muted" style={{fontSize:12,fontWeight:600}}>Rata-rata UTS</div>
                     <div style={{fontSize:22,fontWeight:800}}>
                       {(() => {
-                        const lembagaStudents = students.filter(s => KELAS.find(k=>k.id===s.kelasId)?.lembaga===lembaga);
+                        const lembagaStudents = students.filter(s => kelas.find(k=>k.id===s.kelasId)?.lembaga===lembaga);
                         const vals = lembagaStudents.map(s => calcNilaiAkhir(grades[s.id], mapelList, 'UTS')).filter(v=>v!==null);
                         return vals.length > 0 ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10 : '—';
                       })()}
@@ -309,7 +309,7 @@ export default function DashboardPage() {
                     <div className="muted" style={{fontSize:12,fontWeight:600}}>Rata-rata UAS</div>
                     <div style={{fontSize:22,fontWeight:800,color:'var(--green)'}}>
                       {(() => {
-                        const lembagaStudents = students.filter(s => KELAS.find(k=>k.id===s.kelasId)?.lembaga===lembaga);
+                        const lembagaStudents = students.filter(s => kelas.find(k=>k.id===s.kelasId)?.lembaga===lembaga);
                         const vals = lembagaStudents.map(s => calcNilaiAkhir(grades[s.id], mapelList, 'UAS')).filter(v=>v!==null);
                         return vals.length > 0 ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10 : '—';
                       })()}

@@ -2,25 +2,23 @@
 import { useState, useMemo, useCallback, Fragment } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS, getInitials } from '../../lib/data';
-
 function scoreClass(v) { return v >= 85 ? 'hi' : v >= 75 ? 'mid' : 'lo'; }
 
 export default function InputNilaiPage() {
-  const { lembaga, setLembaga, students, ujian, ujianNilai, setUjianNilaiEntry } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, students, ujian, ujianNilai, setUjianNilaiEntry } = useStore();
 
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
+  const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
   const [savedAt, setSavedAt] = useState(null);
   const [toast, setToast] = useState('');
 
-  const activeKelas = KELAS.find(k => k.id === activeKelasId);
+  const activeKelas = kelas.find(k => k.id === activeKelasId);
   const kelasSiswa = useMemo(() => students.filter(s => s.kelasId === activeKelasId), [students, activeKelasId]);
-  const ujianKelas = useMemo(() => ujian.filter(u => u.kelasId === activeKelasId), [ujian, activeKelasId]);
+  const ujianKelas = useMemo(() => ujian.filter(u => u.kelasId === activeKelasId && u.periode === periode), [ujian, activeKelasId, periode]);
 
   const handleLembaga = (l) => {
     setLembaga(l);
-    const newKelas = KELAS.filter(k => k.lembaga === l);
+    const newKelas = kelas.filter(k => k.lembaga === l);
     setActiveKelasId(newKelas[0]?.id ?? '');
   };
 
@@ -82,7 +80,7 @@ export default function InputNilaiPage() {
 
   const kelasSummary = useMemo(() => kelasList.map(k => {
     const siswa = students.filter(s => s.kelasId === k.id);
-    const ujianK = ujian.filter(u => u.kelasId === k.id);
+    const ujianK = ujian.filter(u => u.kelasId === k.id && u.periode === periode);
     const totalS = siswa.length * ujianK.length;
     const totalI = siswa.reduce((acc, s) =>
       acc + ujianK.filter(u => { const v = ujianNilai[u.id]?.[s.id]; return v != null && v !== ''; }).length
@@ -116,6 +114,10 @@ export default function InputNilaiPage() {
           <div className="seg">
             <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => handleLembaga('TPQ')}>TPQ</button>
             <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => handleLembaga('Madin')}>Madin</button>
+          </div>
+          <div className="seg gold">
+            <button className={periode==='UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
+            <button className={periode==='UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
           </div>
           <div className="field select">T.A. 2025/2026</div>
         </header>

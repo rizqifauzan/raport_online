@@ -5,7 +5,7 @@ import { useStore } from '../store';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students } = useStore();
+  const { students, periode } = useStore();
   const totalSantri = students.length;
 
   const active = (href) => pathname === href ? 'active' : '';
@@ -67,6 +67,24 @@ export default function Sidebar() {
           </svg>
           Akhlaq &amp; Kehadiran
         </Link>
+        {periode === 'UAS' ? (
+          <Link href="/kenaikan" className={active('/kenaikan')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20V10M17 15l-5-5-5 5"/>
+              <path d="M5 20h14"/>
+            </svg>
+            Kenaikan Kelas
+          </Link>
+        ) : (
+          <span className="nav-disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20V10M17 15l-5-5-5 5"/>
+              <path d="M5 20h14"/>
+            </svg>
+            Kenaikan Kelas
+            <span className="pill" style={{background:'rgba(148,163,184,.15)',color:'var(--muted)',fontSize:9}}>UAS</span>
+          </span>
+        )}
         <Link href="/raport" className={active('/raport')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h7l5 5v13H6z"/>

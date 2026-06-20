@@ -2,8 +2,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS } from '../../lib/data';
-
 const HURUF = ['A', 'B', 'C', 'D', 'E'];
 const HURUF_COLOR = { A: '#0d9488', B: '#2563eb', C: '#d97706', D: '#dc2626', E: '#7f1d1d' };
 
@@ -19,18 +17,18 @@ const KEHADIRAN_COLS = [
 ];
 
 export default function AkhlaqPage() {
-  const { lembaga, setLembaga, students, karakter, updateKarakter } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, students, karakter, updateKarakter } = useStore();
 
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
+  const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
   const [savedAt, setSavedAt] = useState(null);
 
-  const activeKelas = KELAS.find(k => k.id === activeKelasId);
+  const activeKelas = kelas.find(k => k.id === activeKelasId);
   const kelasSiswa = useMemo(() => students.filter(s => s.kelasId === activeKelasId), [students, activeKelasId]);
 
   const handleLembaga = (l) => {
     setLembaga(l);
-    const newKelas = KELAS.filter(k => k.lembaga === l);
+    const newKelas = kelas.filter(k => k.lembaga === l);
     setActiveKelasId(newKelas[0]?.id ?? '');
   };
 
@@ -44,12 +42,12 @@ export default function AkhlaqPage() {
       const n = Number(raw);
       val = isNaN(n) ? null : Math.max(0, Math.floor(n));
     }
-    updateKarakter(studentId, field, val);
+    updateKarakter(studentId, periode, field, val);
     setSavedAt(new Date());
-  }, [updateKarakter]);
+  }, [updateKarakter, periode]);
 
   const getColAvg = (field, type) => {
-    const vals = kelasSiswa.map(s => karakter[s.id]?.[field]).filter(v => v != null);
+    const vals = kelasSiswa.map(s => karakter[s.id]?.[periode]?.[field]).filter(v => v != null);
     if (vals.length === 0) return null;
     if (type === 'huruf') {
       const counts = {};
@@ -59,9 +57,10 @@ export default function AkhlaqPage() {
     return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
   };
 
-  const totalSel = kelasSiswa.length * (AKHLAQ_COLS.length + KEHADIRAN_COLS.length);
+  const ALL_COLS = [...AKHLAQ_COLS, ...KEHADIRAN_COLS];
+  const totalSel = kelasSiswa.length * ALL_COLS.length;
   const totalIsi = kelasSiswa.reduce((acc, s) =>
-    acc + [...AKHLAQ_COLS, ...KEHADIRAN_COLS].filter(c => karakter[s.id]?.[c.id] != null).length
+    acc + ALL_COLS.filter(c => karakter[s.id]?.[periode]?.[c.id] != null).length
   , 0);
 
   const kelaIdx = kelasList.findIndex(k => k.id === activeKelasId);
@@ -70,15 +69,14 @@ export default function AkhlaqPage() {
   const prevKelas = () => { if (!isFirst) setActiveKelasId(kelasList[kelaIdx - 1].id); };
   const nextKelas = () => { if (!isLast)  setActiveKelasId(kelasList[kelaIdx + 1].id); };
 
-  const ALL_COLS = [...AKHLAQ_COLS, ...KEHADIRAN_COLS];
   const kelasSummary = useMemo(() => kelasList.map(k => {
     const siswa = students.filter(s => s.kelasId === k.id);
     const totalS = siswa.length * ALL_COLS.length;
     const totalI = siswa.reduce((acc, s) =>
-      acc + ALL_COLS.filter(c => karakter[s.id]?.[c.id] != null).length
+      acc + ALL_COLS.filter(c => karakter[s.id]?.[periode]?.[c.id] != null).length
     , 0);
     return { ...k, jumlahSiswa: siswa.length, totalSel: totalS, totalIsi: totalI };
-  }), [kelasList, students, karakter]);
+  }), [kelasList, students, karakter, periode]);
 
   return (
     <div className="app">
@@ -93,6 +91,10 @@ export default function AkhlaqPage() {
           <div className="seg">
             <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => handleLembaga('TPQ')}>TPQ</button>
             <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => handleLembaga('Madin')}>Madin</button>
+          </div>
+          <div className="seg gold">
+            <button className={periode==='UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
+            <button className={periode==='UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
           </div>
           <div className="field select">T.A. 2025/2026</div>
         </header>
@@ -172,7 +174,7 @@ export default function AkhlaqPage() {
                       Belum ada santri — tambah dari halaman Siswa &amp; Kelas
                     </td></tr>
                   ) : kelasSiswa.map((s, idx) => {
-                    const k = karakter[s.id] ?? {};
+                    const kData = karakter[s.id]?.[periode] ?? {};
                     return (
                       <tr key={s.id}>
                         <td className="sticky-td">
@@ -182,12 +184,12 @@ export default function AkhlaqPage() {
                           </div>
                         </td>
                         {AKHLAQ_COLS.map(c => {
-                          const val = k[c.id];
+                          const val = kData[c.id];
                           const isEmpty = val == null;
                           return (
                             <td key={c.id} className={isEmpty ? 'empty' : ''} style={{textAlign:'center'}}>
                               <select
-                                key={`${s.id}-${c.id}-${activeKelasId}`}
+                                key={`${s.id}-${c.id}-${activeKelasId}-${periode}`}
                                 className="cell-select"
                                 value={val ?? ''}
                                 style={{color: val ? HURUF_COLOR[val] : undefined, fontWeight: val ? 800 : undefined}}
@@ -200,12 +202,12 @@ export default function AkhlaqPage() {
                           );
                         })}
                         {KEHADIRAN_COLS.map(c => {
-                          const val = k[c.id];
+                          const val = kData[c.id];
                           const isEmpty = val == null;
                           return (
                             <td key={c.id} className={isEmpty ? 'empty' : ''} style={{background: isEmpty ? undefined : '#fffbeb'}}>
                               <input
-                                key={`${s.id}-${c.id}-${activeKelasId}`}
+                                key={`${s.id}-${c.id}-${activeKelasId}-${periode}`}
                                 className="cell-in"
                                 defaultValue={val ?? ''}
                                 placeholder="0"

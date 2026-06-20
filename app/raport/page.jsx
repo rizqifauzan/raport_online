@@ -2,25 +2,24 @@
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { KELAS, MAPEL, calcRata, getInitials, getPredikat } from '../../lib/data';
+import { MAPEL, calcRata, getInitials, getPredikat } from '../../lib/data';
 
 export default function RaportPage() {
-  const { lembaga, setLembaga, periode, setPeriode, students, grades } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, students, grades, kelas: kelasList } = useStore();
   const mapelList = MAPEL[lembaga];
-  const kelasList = KELAS.filter(k => k.lembaga === lembaga);
 
   const [activeKelasId, setActiveKelasId] = useState('tpq-3');
   const [activeStudentId, setActiveStudentId] = useState('24302');
 
   const kelasSiswa = useMemo(() => students.filter(s => s.kelasId === activeKelasId), [students, activeKelasId]);
   const student = students.find(s => s.id === activeStudentId) ?? kelasSiswa[0];
-  const kelas = KELAS.find(k => k.id === activeKelasId);
+  const kelas = kelasList.find(k => k.id === activeKelasId);
 
   const studentIdx = kelasSiswa.findIndex(s => s.id === student?.id);
 
   const handleLembaga = (l) => {
     setLembaga(l);
-    const newKelas = KELAS.filter(k => k.lembaga === l);
+    const newKelas = kelasList.filter(k => k.lembaga === l);
     const firstKelas = newKelas[0];
     setActiveKelasId(firstKelas?.id ?? '');
     const firstStudent = students.find(s => s.kelasId === firstKelas?.id);
@@ -57,7 +56,7 @@ export default function RaportPage() {
   const predAkhir = getPredikat(rataAkhir);
 
   const kenaikanStatus = rataAkhir === null ? 'tinjau' : rataAkhir >= 75 ? 'naik' : rataAkhir >= 65 ? 'tinjau' : 'tinggal';
-  const kelasNaik = kelas ? `${lembaga} ${kelas.nomor < kelasList.length ? KELAS.find(k=>k.id===kelasList[kelas.nomor]?.id)?.label ?? 'Lulus' : 'Lulus'}` : '';
+  const kelasNaik = kelas ? `${lembaga} ${kelas.nomor < kelasList.length ? kelasList.find(k=>k.id===kelasList[kelas.nomor]?.id)?.label ?? 'Lulus' : 'Lulus'}` : '';
 
   const today = new Date();
   const tanggalStr = `Kediri, ${today.getDate()} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][today.getMonth()]} ${today.getFullYear()}`;

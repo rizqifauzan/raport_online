@@ -9,6 +9,9 @@ export function StoreProvider({ children }) {
   const [periode, setPeriode] = useState('UAS');
   const [students, setStudents] = useState(INITIAL_DATA.students);
   const [grades, setGrades] = useState(INITIAL_DATA.grades);
+  const [ujian, setUjian] = useState(INITIAL_DATA.ujian);
+  const [ujianNilai, setUjianNilai] = useState(INITIAL_DATA.ujianNilai);
+  const [karakter, setKarakter] = useState(INITIAL_DATA.karakter);
 
   function addStudent(student) {
     setStudents(prev => [student, ...prev]);
@@ -16,6 +19,32 @@ export function StoreProvider({ children }) {
 
   function removeStudent(id) {
     setStudents(prev => prev.filter(s => s.id !== id));
+  }
+
+  function addUjian(u) {
+    setUjian(prev => [...prev, u]);
+  }
+
+  function removeUjian(id) {
+    setUjian(prev => prev.filter(u => u.id !== id));
+  }
+
+  function updateUjian(id, patch) {
+    setUjian(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
+  }
+
+  function setUjianNilaiEntry(ujianId, studentId, nilai) {
+    setUjianNilai(prev => ({
+      ...prev,
+      [ujianId]: { ...(prev[ujianId] ?? {}), [studentId]: nilai },
+    }));
+  }
+
+  function updateKarakter(studentId, field, value) {
+    setKarakter(prev => ({
+      ...prev,
+      [studentId]: { ...(prev[studentId] ?? {}), [field]: value },
+    }));
   }
 
   function updateGrade(studentId, mapelId, field, value) {
@@ -35,7 +64,7 @@ export function StoreProvider({ children }) {
   }
 
   return (
-    <Store.Provider value={{ lembaga, setLembaga, periode, setPeriode, students, grades, addStudent, removeStudent, updateGrade }}>
+    <Store.Provider value={{ lembaga, setLembaga, periode, setPeriode, students, grades, addStudent, removeStudent, updateGrade, ujian, ujianNilai, addUjian, removeUjian, updateUjian, setUjianNilaiEntry, karakter, updateKarakter }}>
       {children}
     </Store.Provider>
   );

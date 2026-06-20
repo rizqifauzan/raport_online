@@ -45,12 +45,27 @@ export default function Sidebar() {
           Siswa &amp; Kelas
           <span className="pill">{totalSantri}</span>
         </Link>
+        <Link href="/ujian" className={active('/ujian')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+            <rect x="9" y="3" width="6" height="4" rx="1"/>
+            <path d="M9 12h6M9 16h4"/>
+          </svg>
+          Mapel Ujian
+        </Link>
         <Link href="/input-nilai" className={active('/input-nilai')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16v16H4z"/>
             <path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/>
           </svg>
           Input Nilai
+        </Link>
+        <Link href="/akhlaq" className={active('/akhlaq')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21C12 21 4 13.5 4 8a8 8 0 0116 0c0 5.5-8 13-8 13z"/>
+            <circle cx="12" cy="8" r="2.5"/>
+          </svg>
+          Akhlaq &amp; Kehadiran
         </Link>
         <Link href="/raport" className={active('/raport')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -61,13 +76,6 @@ export default function Sidebar() {
           Cetak Raport
         </Link>
         <div className="nav-label">Lainnya</div>
-        <a href="#">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 8v8M8 12h8" strokeLinecap="round"/>
-            <circle cx="12" cy="12" r="9"/>
-          </svg>
-          Mata Pelajaran
-        </a>
         <a href="#">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="12" cy="12" r="3"/>

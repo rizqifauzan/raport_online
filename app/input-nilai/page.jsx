@@ -1,11 +1,12 @@
 'use client';
 import { useState, useMemo, useCallback, Fragment } from 'react';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 function scoreClass(v) { return v >= 85 ? 'hi' : v >= 75 ? 'mid' : 'lo'; }
 
 export default function InputNilaiPage() {
-  const { lembaga, setLembaga, periode, setPeriode, kelas, students, ujian, ujianNilai, setUjianNilaiEntry } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, students, ujian, ujianNilai, setUjianNilaiEntry, locks, lockKelas, unlockKelas, isHistory } = useStore();
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
@@ -67,8 +68,18 @@ export default function InputNilaiPage() {
     }).length
   , 0);
 
-  function handleSimpan() {
-    setToast('Nilai berhasil dikunci!');
+  const locked = !isHistory && locks[activeKelasId]?.[periode] === true;
+  const [confirmUnlock, setConfirmUnlock] = useState(false);
+
+  function handleLock() {
+    lockKelas(activeKelasId, periode);
+    setToast(`Nilai ${activeKelas?.label} ${periode} dipublikasi`);
+    setTimeout(() => setToast(''), 2500);
+  }
+  function handleUnlock() {
+    unlockKelas(activeKelasId, periode);
+    setConfirmUnlock(false);
+    setToast(`Edit mode aktif untuk ${activeKelas?.label} ${periode}`);
     setTimeout(() => setToast(''), 2500);
   }
 
@@ -85,8 +96,8 @@ export default function InputNilaiPage() {
     const totalI = siswa.reduce((acc, s) =>
       acc + ujianK.filter(u => { const v = ujianNilai[u.id]?.[s.id]; return v != null && v !== ''; }).length
     , 0);
-    return { ...k, jumlahSiswa: siswa.length, jumlahUjian: ujianK.length, totalSel: totalS, totalIsi: totalI };
-  }), [kelasList, students, ujian, ujianNilai]);
+    return { ...k, jumlahSiswa: siswa.length, jumlahUjian: ujianK.length, totalSel: totalS, totalIsi: totalI, locked: locks[k.id]?.[periode] === true };
+  }), [kelasList, students, ujian, ujianNilai, locks, periode]);
 
   const tipeBadge = (tipe) => tipe === 'Praktik' ? 'b-violet' : tipe === 'Kustom' ? 'b-gold' : 'b-blue';
 
@@ -105,6 +116,7 @@ export default function InputNilaiPage() {
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <header className="topbar">
           <div>
             <h1>Input Nilai</h1>
@@ -145,7 +157,9 @@ export default function InputNilaiPage() {
                   <div className="kn b-teal">{k.nomor}</div>
                   <div className="ct">{k.label}</div>
                   <div className="cm">{k.jumlahSiswa} santri · {k.jumlahUjian} ujian</div>
-                  {k.totalSel > 0 && (
+                  {k.locked ? (
+                    <div className="avg" style={{fontSize:10,color:'#16a34a',fontWeight:800}}>✅ Published</div>
+                  ) : k.totalSel > 0 && (
                     done
                       ? <div className="avg score hi" style={{fontSize:10}}>✓ Lengkap</div>
                       : <div className="avg score mid" style={{fontSize:10}}>{pct}%</div>
@@ -156,17 +170,32 @@ export default function InputNilaiPage() {
           </div>
 
           <div className="card" style={{overflow:'hidden'}}>
+            {locked && (
+              <div className="lock-banner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+                Nilai {activeKelas?.label} {periode} sudah dipublikasi — hanya baca
+                {!isHistory && <button className="lock-banner-btn" onClick={() => setConfirmUnlock(true)}>Edit</button>}
+              </div>
+            )}
             <div className="card-head">
               <div>
                 <h3>{lembaga} · {activeKelas?.label} — T.A. 2025/2026</h3>
                 <div className="sub">Wali kelas: {activeKelas?.wali} · Kustom tidak masuk rata-rata</div>
               </div>
               <div className="spacer"/>
-              {ujianKelas.length > 0 && totalSel - totalIsi > 0 && (
+              {ujianKelas.length > 0 && totalSel - totalIsi > 0 && !locked && (
                 <span className="badge b-amber"><span className="dot"/>{totalSel - totalIsi} sel belum terisi</span>
               )}
               {ujianKelas.length > 0 && totalSel > 0 && totalIsi === totalSel && (
                 <span className="badge b-green"><span className="dot"/> Semua terisi</span>
+              )}
+              {!locked && !isHistory && (
+                <button className="btn publish-btn" onClick={handleLock}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  Publish
+                </button>
               )}
             </div>
 
@@ -235,8 +264,10 @@ export default function InputNilaiPage() {
                                   type={isKustom ? 'text' : 'number'}
                                   min={isKustom ? undefined : 0}
                                   max={isKustom ? undefined : 100}
+                                  disabled={locked || isHistory}
                                   style={isKustom ? {textAlign:'left',paddingLeft:8,fontSize:12} : {}}
                                   onBlur={e => {
+                                    if (locked || isHistory) return;
                                     if (!isKustom && e.target.value !== '') {
                                       const clamped = Math.min(100, Math.max(0, Number(e.target.value)));
                                       e.target.value = isNaN(clamped) ? '' : clamped;
@@ -300,16 +331,32 @@ export default function InputNilaiPage() {
             <div className="spacer"/>
             <button className="btn" disabled={isFirst} onClick={prevKelas}>‹ Kelas Sebelumnya</button>
             <button className="btn" disabled={isLast} onClick={nextKelas}>Kelas Berikutnya ›</button>
-            <button className="btn primary" onClick={handleSimpan}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-                <path d="M17 21v-8H7v8M7 3v5h8"/>
-              </svg>
-              Simpan &amp; Kunci Nilai
-            </button>
+            {!locked && !isHistory && (
+              <button className="btn primary" onClick={handleLock}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                Publish
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {confirmUnlock && (
+        <div className="modal-overlay" onClick={() => setConfirmUnlock(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth:400}}>
+            <h3 style={{margin:'0 0 10px'}}>Batalkan Publish & Edit Nilai?</h3>
+            <p style={{margin:'0 0 20px',fontSize:14,color:'var(--ink-2)'}}>
+              Nilai <b>{activeKelas?.label} {periode}</b> akan dapat diedit kembali. Pastikan ada alasan yang valid untuk membuka kunci.
+            </p>
+            <div className="form-actions">
+              <button className="btn ghost" onClick={() => setConfirmUnlock(false)}>Batal</button>
+              <button className="btn" style={{background:'var(--amber)',color:'#fff'}} onClick={handleUnlock}>Ya, Edit Kembali</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="toast">

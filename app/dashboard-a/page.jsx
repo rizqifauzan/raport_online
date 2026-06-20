@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 import { MAPEL, calcNilaiAkhir } from '../../lib/data';
 import { useMemo } from 'react';
@@ -93,6 +94,7 @@ export default function DashboardPage() {
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <header className="topbar">
           <div>
             <h1>Dashboard</h1>

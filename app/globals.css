@@ -613,6 +613,114 @@ table.rapor tfoot td { font-weight:800; background:#f0fdfa; color:#0f766e; paddi
 .icon-btn.sm { width:30px; height:30px; }
 .icon-btn.sm svg { width:15px; height:15px; }
 
+/* ─── Lock banner & button ───────────────────────────────────────────── */
+.lock-banner {
+  display:flex; align-items:center; gap:10px;
+  background:linear-gradient(90deg,#052e16,#064e3b);
+  color:#bbf7d0; font-size:13px; font-weight:700;
+  padding:10px 20px; border-bottom:1px solid #166534;
+}
+.lock-banner svg { opacity:.7; flex:0 0 auto; }
+.lock-banner-btn {
+  margin-left:auto; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  color:#bbf7d0; font-size:12px; font-weight:700; padding:5px 14px; border-radius:8px;
+  cursor:pointer; white-space:nowrap; transition:.12s;
+}
+.lock-banner-btn:hover { background:rgba(255,255,255,.22); }
+.btn.publish-btn {
+  background:var(--brand); color:#fff; border:none;
+  font-size:12.5px; display:flex; align-items:center; gap:6px;
+}
+.btn.publish-btn:hover { background:var(--brand-600); }
+input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:var(--line-2) !important; }
+
+/* ─── History banner ─────────────────────────────────────────────────── */
+.history-banner {
+  display:flex; align-items:center; gap:10px;
+  background: linear-gradient(90deg,#78350f,#92400e);
+  color:#fef3c7; font-size:13px; font-weight:700;
+  padding:10px 24px; border-bottom:1px solid #92400e; position:relative; z-index:25;
+}
+.history-banner svg { width:16px; height:16px; opacity:.8; flex:0 0 auto; }
+.history-banner-close {
+  margin-left:auto; background:rgba(255,255,255,.15); border:none; color:#fef3c7;
+  font-size:12px; font-weight:700; padding:5px 12px; border-radius:8px; cursor:pointer;
+  white-space:nowrap;
+}
+.history-banner-close:hover { background:rgba(255,255,255,.25); }
+
+/* ─── T.A. Selector (Sidebar) ───────────────────────────────────────── */
+.ta-selector {
+  position:relative; margin:8px 4px 12px; padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.08);
+}
+.ta-sel-btn {
+  width:100%; display:flex; align-items:center; gap:9px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+  color:#cdeae4; border-radius:10px; padding:9px 10px; cursor:pointer;
+  transition:.15s; text-align:left;
+}
+.ta-sel-btn:hover, .ta-sel-btn.open { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.2); }
+.ta-sel-btn.history-mode { border-color:#d97706; background:rgba(120,53,15,.35); color:#fde68a; }
+.ta-sel-btn svg:first-child { width:16px; height:16px; opacity:.7; flex:0 0 auto; }
+.ta-sel-info { flex:1; min-width:0; }
+.ta-sel-label { font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ta-sel-sub { font-size:10.5px; opacity:.65; }
+.ta-chevron { width:14px; height:14px; opacity:.6; flex:0 0 auto; transition:transform .15s; }
+.ta-sel-btn.open .ta-chevron { transform:rotate(180deg); }
+
+.ta-dropdown {
+  position:absolute; bottom:calc(100% + 6px); left:0; right:0;
+  background:#0d4842; border:1px solid rgba(255,255,255,.15); border-radius:11px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4); overflow:hidden; z-index:100;
+}
+.ta-sep { font-size:10px; text-transform:uppercase; letter-spacing:.6px; color:#5fab9f; padding:8px 12px 4px; font-weight:700; }
+.ta-opt {
+  display:flex; align-items:center; gap:8px; padding:9px 12px;
+  cursor:pointer; transition:.12s; border-bottom:1px solid rgba(255,255,255,.05);
+}
+.ta-opt:last-child { border-bottom:none; }
+.ta-opt:hover { background:rgba(255,255,255,.08); }
+.ta-opt.sel { background:rgba(13,148,136,.2); }
+.ta-opt-year { font-size:12.5px; font-weight:700; color:#cdeae4; flex:1; }
+.ta-opt-sub { font-size:10.5px; color:#7fc6bc; }
+
+/* ─── Tahun Ajaran page ──────────────────────────────────────────────── */
+.ta-active-card {
+  background:var(--surface); border:1.5px solid var(--brand-100); border-radius:var(--r-lg);
+  padding:24px; box-shadow:var(--shadow); position:relative;
+}
+.ta-badge-active {
+  display:inline-block; background:var(--brand); color:#fff;
+  font-size:10.5px; font-weight:800; padding:3px 10px; border-radius:20px;
+  letter-spacing:.3px; margin-bottom:12px; text-transform:uppercase;
+}
+.ta-label { font-size:22px; font-weight:800; color:var(--ink); margin-bottom:16px; }
+.ta-stats-row { display:flex; gap:28px; margin-bottom:20px; flex-wrap:wrap; }
+.ta-stat { text-align:center; }
+.ts-val { font-size:24px; font-weight:800; color:var(--brand); }
+.ts-key { font-size:11px; color:var(--muted); font-weight:600; margin-top:2px; }
+.ta-active-footer { display:flex; align-items:center; gap:16px; flex-wrap:wrap; border-top:1px solid var(--line-2); padding-top:16px; }
+.ta-warning {
+  display:flex; align-items:flex-start; gap:10px;
+  background:#fffbeb; border:1px solid #fde68a; border-radius:10px;
+  padding:12px 14px; margin-bottom:16px; font-size:13px; color:#78350f;
+}
+.ta-history-list { display:flex; flex-direction:column; gap:10px; }
+.ta-snap-card {
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:16px 20px; display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  box-shadow:var(--shadow-sm); transition:.15s;
+}
+.ta-snap-card.viewing { border-color:var(--amber); box-shadow:0 0 0 3px #fef3c7; }
+.ta-snap-card:hover { border-color:var(--brand-100); box-shadow:var(--shadow); }
+.ta-snap-left { flex:1; min-width:160px; }
+.ta-snap-year { font-size:16px; font-weight:800; margin-bottom:3px; }
+.ta-snap-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.ta-snap-kenaikan { min-width:160px; }
+.kn-row { display:flex; gap:6px; flex-wrap:wrap; }
+.ta-snap-actions { margin-left:auto; }
+
 @media print {
   .sidebar, .print-bar { display:none !important; }
   .app, .main { display:block; }

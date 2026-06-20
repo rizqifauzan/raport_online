@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 import { MAPEL, calcNilaiAkhir, getInitials } from '../../lib/data';
 
@@ -153,6 +154,7 @@ export default function SiswaPage() {
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <header className="topbar">
           <div>
             <h1>Siswa &amp; Kelas</h1>

@@ -1,14 +1,18 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '../store';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode } = useStore();
+  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa } = useStore();
   const totalSantri = students.length;
+  const [taOpen, setTaOpen] = useState(false);
 
   const active = (href) => pathname === href ? 'active' : '';
+
+  const viewingSnap = viewingTaId ? history.find(h => h.id === viewingTaId) : null;
 
   return (
     <aside className="sidebar">
@@ -94,6 +98,13 @@ export default function Sidebar() {
           Cetak Raport
         </Link>
         <div className="nav-label">Lainnya</div>
+        <Link href="/tahun-ajaran" className={active('/tahun-ajaran')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          Tahun Ajaran
+          {history.length > 0 && <span className="pill">{history.length}</span>}
+        </Link>
         <a href="#">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="12" cy="12" r="3"/>
@@ -102,6 +113,45 @@ export default function Sidebar() {
           Pengaturan
         </a>
       </nav>
+
+      {/* T.A. Selector */}
+      <div className="ta-selector">
+        <button className={`ta-sel-btn${taOpen ? ' open' : ''}${isHistory ? ' history-mode' : ''}`} onClick={() => setTaOpen(o => !o)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+          </svg>
+          <div className="ta-sel-info">
+            <div className="ta-sel-label">{viewingSnap ? `Arsip ${viewingSnap.label}` : `T.A. ${currentTaLabel}`}</div>
+            <div className="ta-sel-sub">{isHistory ? '🕐 Hanya Baca' : 'Aktif'}</div>
+          </div>
+          <svg className="ta-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+
+        {taOpen && (
+          <div className="ta-dropdown">
+            <div
+              className={`ta-opt${!viewingTaId ? ' sel' : ''}`}
+              onClick={() => { setViewingTa(null); setTaOpen(false); }}
+            >
+              <div className="ta-opt-year">T.A. {currentTaLabel}</div>
+              <div className="ta-opt-sub">Aktif sekarang</div>
+              {!viewingTaId && <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" width="14"><path d="M20 6L9 17l-5-5"/></svg>}
+            </div>
+            {history.length > 0 && <div className="ta-sep">Arsip</div>}
+            {[...history].reverse().map(h => (
+              <div
+                key={h.id}
+                className={`ta-opt${viewingTaId === h.id ? ' sel' : ''}`}
+                onClick={() => { setViewingTa(h.id); setTaOpen(false); }}
+              >
+                <div className="ta-opt-year">T.A. {h.label}</div>
+                <div className="ta-opt-sub">Diarsip {h.archivedAt}</div>
+                {viewingTaId === h.id && <svg viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.5" strokeLinecap="round" width="14"><path d="M20 6L9 17l-5-5"/></svg>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="foot">
         <div className="av">OP</div>

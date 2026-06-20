@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 export default function UjianPage() {
   const { lembaga, setLembaga, periode, setPeriode, kelas, ujian, ujianNilai, addUjian, removeUjian, updateUjian } = useStore();
@@ -79,6 +80,7 @@ export default function UjianPage() {
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <header className="topbar">
           <div>
             <h1>Mapel Ujian</h1>

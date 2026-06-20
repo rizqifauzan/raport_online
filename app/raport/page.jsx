@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 import { MAPEL, calcRata, getInitials, getPredikat } from '../../lib/data';
 
@@ -66,6 +67,7 @@ export default function RaportPage() {
       <div className="app">
         <Sidebar />
         <div className="main">
+          <HistoryBanner />
           <div className="stage">
             <div style={{display:'grid',placeItems:'center',minHeight:'60vh',color:'var(--muted)',fontSize:15}}>
               Pilih kelas dan santri untuk melihat raport.
@@ -80,6 +82,7 @@ export default function RaportPage() {
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <div className="stage">
           {/* Print bar */}
           <div className="print-bar">

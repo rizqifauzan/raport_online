@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
+import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 const HURUF = ['A', 'B', 'C', 'D', 'E'];
 const HURUF_COLOR = { A: '#0d9488', B: '#2563eb', C: '#d97706', D: '#dc2626', E: '#7f1d1d' };
@@ -17,11 +18,12 @@ const KEHADIRAN_COLS = [
 ];
 
 export default function AkhlaqPage() {
-  const { lembaga, setLembaga, periode, setPeriode, kelas, students, karakter, updateKarakter } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, students, karakter, updateKarakter, locks, lockKelas, unlockKelas, isHistory } = useStore();
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
   const [savedAt, setSavedAt] = useState(null);
+  const [confirmUnlock, setConfirmUnlock] = useState(false);
 
   const activeKelas = kelas.find(k => k.id === activeKelasId);
   const kelasSiswa = useMemo(() => students.filter(s => s.kelasId === activeKelasId), [students, activeKelasId]);
@@ -31,6 +33,17 @@ export default function AkhlaqPage() {
     const newKelas = kelas.filter(k => k.lembaga === l);
     setActiveKelasId(newKelas[0]?.id ?? '');
   };
+
+  const locked = !isHistory && locks[activeKelasId]?.[periode] === true;
+
+  function handleLock() {
+    lockKelas(activeKelasId, periode);
+    setSavedAt(null);
+  }
+  function handleUnlock() {
+    unlockKelas(activeKelasId, periode);
+    setConfirmUnlock(false);
+  }
 
   const handleInput = useCallback((studentId, field, raw, type) => {
     let val;
@@ -75,13 +88,14 @@ export default function AkhlaqPage() {
     const totalI = siswa.reduce((acc, s) =>
       acc + ALL_COLS.filter(c => karakter[s.id]?.[periode]?.[c.id] != null).length
     , 0);
-    return { ...k, jumlahSiswa: siswa.length, totalSel: totalS, totalIsi: totalI };
-  }), [kelasList, students, karakter, periode]);
+    return { ...k, jumlahSiswa: siswa.length, totalSel: totalS, totalIsi: totalI, locked: locks[k.id]?.[periode] === true };
+  }), [kelasList, students, karakter, periode, locks]);
 
   return (
     <div className="app">
       <Sidebar />
       <div className="main">
+          <HistoryBanner />
         <header className="topbar">
           <div>
             <h1>Akhlaq &amp; Kehadiran</h1>
@@ -124,7 +138,9 @@ export default function AkhlaqPage() {
                   <div className="kn b-teal">{k.nomor}</div>
                   <div className="ct">{k.label}</div>
                   <div className="cm">{k.jumlahSiswa} santri</div>
-                  {k.totalSel > 0 && (
+                  {k.locked ? (
+                    <div className="avg" style={{fontSize:10,color:'#16a34a',fontWeight:800}}>✅ Published</div>
+                  ) : k.totalSel > 0 && (
                     done
                       ? <div className="avg score hi" style={{fontSize:10}}>✓ Lengkap</div>
                       : <div className="avg score mid" style={{fontSize:10}}>{pct}%</div>
@@ -135,17 +151,32 @@ export default function AkhlaqPage() {
           </div>
 
           <div className="card" style={{overflow:'hidden'}}>
+            {locked && (
+              <div className="lock-banner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+                Akhlaq &amp; Kehadiran {activeKelas?.label} {periode} sudah dipublikasi
+                {!isHistory && <button className="lock-banner-btn" onClick={() => setConfirmUnlock(true)}>Edit</button>}
+              </div>
+            )}
             <div className="card-head">
               <div>
                 <h3>{lembaga} · {activeKelas?.label} — T.A. 2025/2026</h3>
                 <div className="sub">Wali kelas: {activeKelas?.wali}</div>
               </div>
               <div className="spacer"/>
-              {totalSel - totalIsi > 0 && (
+              {!locked && totalSel - totalIsi > 0 && (
                 <span className="badge b-amber"><span className="dot"/>{totalSel - totalIsi} sel belum terisi</span>
               )}
               {totalSel > 0 && totalIsi === totalSel && (
                 <span className="badge b-green"><span className="dot"/> Semua terisi</span>
+              )}
+              {!locked && !isHistory && (
+                <button className="btn publish-btn" onClick={handleLock}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                  Publish
+                </button>
               )}
             </div>
 
@@ -192,8 +223,9 @@ export default function AkhlaqPage() {
                                 key={`${s.id}-${c.id}-${activeKelasId}-${periode}`}
                                 className="cell-select"
                                 value={val ?? ''}
+                                disabled={locked || isHistory}
                                 style={{color: val ? HURUF_COLOR[val] : undefined, fontWeight: val ? 800 : undefined}}
-                                onChange={e => handleInput(s.id, c.id, e.target.value || null, 'huruf')}
+                                onChange={e => { if (!locked && !isHistory) handleInput(s.id, c.id, e.target.value || null, 'huruf'); }}
                               >
                                 <option value="">—</option>
                                 {HURUF.map(h => <option key={h} value={h}>{h}</option>)}
@@ -213,8 +245,10 @@ export default function AkhlaqPage() {
                                 placeholder="0"
                                 type="number"
                                 min="0"
+                                disabled={locked || isHistory}
                                 style={{color:'#92400e'}}
                                 onBlur={e => {
+                                  if (locked || isHistory) return;
                                   if (e.target.value !== '') {
                                     const clamped = Math.max(0, Math.floor(Number(e.target.value)));
                                     e.target.value = isNaN(clamped) ? '' : clamped;
@@ -273,9 +307,32 @@ export default function AkhlaqPage() {
             <div className="spacer"/>
             <button className="btn" disabled={isFirst} onClick={prevKelas}>‹ Kelas Sebelumnya</button>
             <button className="btn" disabled={isLast} onClick={nextKelas}>Kelas Berikutnya ›</button>
+            {!locked && !isHistory && (
+              <button className="btn primary" onClick={handleLock}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="15" height="15">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                </svg>
+                Publish
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {confirmUnlock && (
+        <div className="modal-overlay" onClick={() => setConfirmUnlock(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{maxWidth:400}}>
+            <h3 style={{margin:'0 0 10px'}}>Batalkan Publish & Edit Akhlaq?</h3>
+            <p style={{margin:'0 0 20px',fontSize:14,color:'var(--ink-2)'}}>
+              Penilaian Akhlaq &amp; Kehadiran <b>{activeKelas?.label} {periode}</b> akan dapat diedit kembali.
+            </p>
+            <div className="form-actions">
+              <button className="btn ghost" onClick={() => setConfirmUnlock(false)}>Batal</button>
+              <button className="btn" style={{background:'var(--amber)',color:'#fff'}} onClick={handleUnlock}>Ya, Edit Kembali</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

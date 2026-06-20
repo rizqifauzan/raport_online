@@ -1,0 +1,90 @@
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useStore } from '../store';
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const { students } = useStore();
+  const totalSantri = students.length;
+
+  const active = (href) => pathname === href ? 'active' : '';
+
+  return (
+    <aside className="sidebar">
+      <div className="brand">
+        <div className="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/>
+            <path d="M9.5 12l1.8 1.8L15 10"/>
+          </svg>
+        </div>
+        <div>
+          <div className="name">Raport Online</div>
+          <div className="sub">Ponpes Al-Hikmah</div>
+        </div>
+      </div>
+
+      <nav className="nav">
+        <div className="nav-label">Menu</div>
+        <Link href="/dashboard-a" className={active('/dashboard-a')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          </svg>
+          Dashboard
+        </Link>
+        <Link href="/siswa" className={active('/siswa')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="9" cy="8" r="3.2"/>
+            <path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/>
+            <path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/>
+          </svg>
+          Siswa &amp; Kelas
+          <span className="pill">{totalSantri}</span>
+        </Link>
+        <Link href="/input-nilai" className={active('/input-nilai')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16v16H4z"/>
+            <path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/>
+          </svg>
+          Input Nilai
+        </Link>
+        <Link href="/raport" className={active('/raport')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3h7l5 5v13H6z"/>
+            <path d="M13 3v5h5"/>
+            <path d="M9 13h6M9 17h4"/>
+          </svg>
+          Cetak Raport
+        </Link>
+        <div className="nav-label">Lainnya</div>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M12 8v8M8 12h8" strokeLinecap="round"/>
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+          Mata Pelajaran
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/>
+          </svg>
+          Pengaturan
+        </a>
+      </nav>
+
+      <div className="foot">
+        <div className="av">OP</div>
+        <div className="who">
+          <b>Ustadz Hamid</b>
+          <br/>
+          <span>Operator</span>
+        </div>
+      </div>
+    </aside>
+  );
+}

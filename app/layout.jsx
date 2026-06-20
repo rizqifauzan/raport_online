@@ -1,4 +1,5 @@
 import "./globals.css";
+import { StoreProvider } from "./store";
 
 export const metadata = {
   title: "Raport Online Pesantren — TPQ & Madin",
@@ -14,7 +15,9 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body>{children}</body>
+      <body>
+        <StoreProvider>{children}</StoreProvider>
+      </body>
     </html>
   );
 }

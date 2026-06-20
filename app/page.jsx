@@ -1,7 +1,6 @@
-import { loadMockup } from "../lib/mockup";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-static";
-
+// Buka langsung ke dashboard saat akses root (localhost:3000)
 export default function HomePage() {
-  return <div dangerouslySetInnerHTML={{ __html: loadMockup("index.html") }} />;
+  redirect("/dashboard-a");
 }

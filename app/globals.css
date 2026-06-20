@@ -721,6 +721,196 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .kn-row { display:flex; gap:6px; flex-wrap:wrap; }
 .ta-snap-actions { margin-left:auto; }
 
+/* ── Raport V2 ────────────────────────────────────────── */
+
+/* Fixed A4 sheet — overrides .sheet for v2 */
+.rv2-sheet {
+  width: 210mm !important;
+  height: 297mm !important;
+  min-height: unset !important;
+  padding: 10mm 12mm !important;
+  overflow: hidden;
+  font-size: 10.5px;
+  box-sizing: border-box;
+}
+
+/* Compact KOP for v2 */
+.rv2-sheet .kop { padding-bottom:8px; }
+.rv2-sheet .kop .seal { width:52px; height:52px; }
+.rv2-sheet .kop .seal svg { width:28px; height:28px; }
+.rv2-sheet .kop .kt h2 { font-size:16px; }
+.rv2-sheet .kop .kt .l1 { font-size:11px; }
+.rv2-sheet .kop .kt .l2 { font-size:10px; }
+.rv2-sheet .kop .kt .arab { font-size:14px; }
+.rv2-sheet .doc-title { margin:8px 0 4px; }
+.rv2-sheet .doc-title h3 { font-size:13px; }
+.rv2-sheet .doc-title .sub { font-size:10.5px; }
+.rv2-sheet .ident { margin:8px 2px 10px; font-size:10.5px; gap:1px 30px; }
+.rv2-sheet .ident .ir { padding:2px 0; }
+
+/* V2 nilai table */
+.rv2-tbl { width:100%; border-collapse:collapse; margin:6px 0; font-size:10.5px; }
+.rv2-tbl th, .rv2-tbl td { border:1px solid #b0bec5; padding:3px 7px; }
+.rv2-tbl th { background:#e8f5e9; text-align:center; font-weight:700; font-size:10px; }
+.rv2-tbl td.no { text-align:center; color:#64748b; font-size:10px; width:24px; }
+.rv2-tbl td.c  { text-align:center; width:56px; }
+.rv2-section-hdr td {
+  background:#f0f4f8; font-weight:800; font-size:9.5px;
+  letter-spacing:.04em; color:#1e293b; padding:3px 8px;
+}
+.rv2-empty td { background:#fafbfc; color:#d1d5db; }
+.rv2-foot td { background:#f8fafc; font-size:10.5px; border:1px solid #b0bec5; padding:3px 7px; }
+
+/* Lower section */
+.rv2-lower { display:flex; gap:10px; margin:8px 0; align-items:flex-start; }
+.rv2-akhlaq { flex:1; border:1px solid #b0bec5; border-radius:3px; padding:6px 8px; }
+.rv2-box-title { font-weight:800; font-size:9.5px; text-transform:uppercase; letter-spacing:.05em; color:#334155; margin-bottom:4px; }
+.rv2-kar-tbl { width:100%; border-collapse:collapse; font-size:10px; }
+.rv2-kar-tbl td { border:1px solid #d1d5db; padding:3px 7px; }
+.rv2-kar-tbl td.c { text-align:center; width:48px; }
+
+.rv2-kenaikan { width:150px; border:2px solid #b0bec5; border-radius:3px; padding:6px 8px; text-align:center; }
+.rv2-kenaikan-body { min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 0; }
+.rv2-kenaikan-status { font-size:16px; font-weight:900; letter-spacing:1px; padding:3px 10px; border-radius:3px; }
+.rv2-kenaikan-status.naik    { color:#065f46; background:#d1fae5; }
+.rv2-kenaikan-status.tinggal { color:#991b1b; background:#fee2e2; }
+.rv2-kenaikan-status.lulus   { color:#4c1d95; background:#ede9fe; }
+
+/* Signatures */
+.rv2-signs { display:flex; gap:0; margin-top:10px; border:1px solid #b0bec5; }
+.rv2-sign  { flex:1; padding:8px 10px; border-right:1px solid #b0bec5; text-align:center; }
+.rv2-sign:last-child { border-right:none; }
+.rv2-sign-place { font-size:9.5px; color:#64748b; min-height:14px; }
+.rv2-sign-role  { font-weight:800; font-size:10px; color:#1e293b; margin:2px 0 3px; }
+.rv2-sign-space { height:48px; border-bottom:1px solid #334155; margin:0 16px; }
+.rv2-sign-name  { font-size:9.5px; color:#334155; margin-top:3px; font-weight:600; }
+
+/* Print — lock to A4, no margin (sheet has internal padding) */
+@media print {
+  .rv2-sheet {
+    box-shadow: none !important;
+    width: 210mm !important;
+    height: 297mm !important;
+  }
+  .rv2-sheet::before, .rv2-sheet::after { display: none; }
+}
+
+/* ============================================================
+   PAGE: Raport V3 — replika template Word (Times, garis hitam)
+   ============================================================ */
+.rv3-sheet {
+  /* variabel default — bisa di-override lewat panel Pengaturan
+     (dikalibrasi agar muat 1 halaman A4) */
+  --rv3-fs: 12.5px;
+  --rv3-row-h: 22px;
+  --rv3-pad-x: 52px;
+  --rv3-pad-y: 28px;
+  --rv3-sign-h: 56px;
+  --rv3-sec-gap: 10px;
+
+  font-family: 'Times New Roman', Times, serif;
+  color:#000;
+  padding: var(--rv3-pad-y) var(--rv3-pad-x);
+  font-size: var(--rv3-fs);
+  line-height:1.35;
+  display:flex;
+  flex-direction:column;
+  min-height:1123px;
+}
+.rv3-sheet::before, .rv3-sheet::after { display:none; }
+
+.rv3-ident { display:grid; grid-template-columns:1fr 1fr; gap:2px 36px; margin:0 0 16px; font-size: calc(var(--rv3-fs) + 0.5px); }
+.rv3-ident .row { display:grid; grid-template-columns:124px 12px 1fr; align-items:baseline; }
+.rv3-ident .row .lab { white-space:nowrap; }
+.rv3-ident .row .val { font-weight:700; }
+
+.rv3-sec { font-weight:700; font-size: var(--rv3-fs); text-transform:uppercase; margin: var(--rv3-sec-gap) 0 4px; }
+
+.rv3-tbl { width:100%; border-collapse:collapse; font-size: var(--rv3-fs); }
+.rv3-tbl th, .rv3-tbl td { border:1px solid #000; padding:4px 9px; vertical-align:middle; }
+.rv3-tbl th { font-weight:700; text-align:center; }
+.rv3-tbl td.no, .rv3-tbl th.no { text-align:center; width:46px; }
+.rv3-tbl td.nilai, .rv3-tbl th.nilai { text-align:center; width:42%; }
+.rv3-tbl tbody tr { height: var(--rv3-row-h); }
+.rv3-sum  { text-align:center; font-weight:700; }
+.rv3-rank { text-align:center; font-weight:700; }
+
+.rv3-lower { display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-top: var(--rv3-sec-gap); align-items:start; }
+.rv3-box-title { text-align:center; font-weight:700; font-size: var(--rv3-fs); margin-bottom:5px; }
+
+.rv3-keputusan { text-align:center; margin-top: calc(var(--rv3-sec-gap) * 1.6); }
+.rv3-keputusan h4 { margin:0 0 7px; font-weight:700; font-size: calc(var(--rv3-fs) + 1.5px); letter-spacing:1px; }
+.rv3-kep-line { font-size: var(--rv3-fs); }
+.rv3-kep-decision { font-weight:700; font-size: calc(var(--rv3-fs) + 1.5px); margin-top:3px; }
+
+.rv3-date { text-align:center; font-size: var(--rv3-fs); margin-top:18px; }
+.rv3-date.push { margin-top: var(--rv3-sec-gap); }
+
+.rv3-signs { display:grid; grid-template-columns:1fr 1fr 1fr; margin-top:10px; text-align:center; font-size: var(--rv3-fs); }
+.rv3-sign-role  { margin-bottom:2px; }
+.rv3-sign-space { height: var(--rv3-sign-h); }
+.rv3-sign-name  { font-weight:700; }
+
+/* ── Panel Pengaturan Raport V3 ─────────────────────────── */
+.rv3-settings-overlay {
+  position:fixed; inset:0; background:rgba(15,23,42,.35); z-index:60;
+}
+.rv3-settings {
+  position:fixed; top:0; right:0; height:100vh; width:340px; max-width:90vw;
+  background:#fff; box-shadow:-8px 0 40px rgba(15,23,42,.22); z-index:61;
+  display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .22s ease;
+}
+.rv3-settings.open { transform:translateX(0); }
+.rv3-settings-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 18px; border-bottom:1px solid #e5e9ef;
+  font-weight:800; font-size:15px; color:#0f172a;
+}
+.rv3-settings-head button {
+  border:0; background:#f1f5f9; color:#475569; width:28px; height:28px; border-radius:8px;
+  cursor:pointer; font-size:14px;
+}
+.rv3-settings-body { flex:1; overflow-y:auto; padding:14px 18px; }
+.rv3-set-group {
+  font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
+  color:#0d9488; margin:16px 0 8px;
+}
+.rv3-set-group:first-child { margin-top:0; }
+.rv3-set-row { display:block; margin-bottom:12px; }
+.rv3-set-label {
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:12.5px; font-weight:600; color:#334155; margin-bottom:5px;
+}
+.rv3-set-label b { color:#0f766e; font-weight:800; font-variant-numeric:tabular-nums; }
+.rv3-set-input {
+  width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px;
+  font-size:13px; color:#0f172a; outline:none;
+}
+.rv3-set-input:focus { border-color:#0d9488; box-shadow:0 0 0 3px rgba(13,148,136,.15); }
+.rv3-set-range { width:100%; accent-color:#0d9488; cursor:pointer; }
+.rv3-paper-seg { display:flex; gap:8px; }
+.rv3-paper-seg button {
+  flex:1; border:1px solid #cbd5e1; background:#f8fafc; color:#475569;
+  font-weight:700; font-size:13px; padding:9px 6px; border-radius:9px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1.2;
+}
+.rv3-paper-seg button small { font-weight:600; font-size:10px; color:#94a3b8; }
+.rv3-paper-seg button.on { border-color:#0d9488; background:#f0fdfa; color:#0f766e; }
+.rv3-paper-seg button.on small { color:#5eaaa2; }
+.rv3-settings-foot { padding:14px 18px; border-top:1px solid #e5e9ef; }
+.rv3-set-reset {
+  width:100%; border:1px solid #cbd5e1; background:#f8fafc; color:#475569;
+  font-weight:700; font-size:13px; padding:9px; border-radius:9px; cursor:pointer;
+}
+.rv3-set-reset:hover { background:#f1f5f9; }
+
+@media print {
+  /* ukuran (width/min-height) di-set dinamis per kertas dari <style> di page.jsx */
+  .rv3-sheet { box-shadow: none !important; height: auto !important; }
+  .rv3-sheet::before, .rv3-sheet::after { display: none; }
+}
+
 /* ── Dashboard stat cards ─────────────────────────────── */
 .stat-grid { grid-template-columns: repeat(4,1fr) !important; gap:16px; }
 

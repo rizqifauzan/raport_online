@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard A — Raport Online Pesantren</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .main-grid { grid-template-columns: 1.7fr 1fr; margin-top: 18px; align-items: start; }
+  .greet { display:flex; align-items:center; gap:14px; margin-bottom: 20px; }
+  .greet .badge-ay { font-family:'Amiri',serif; }
+
+  /* bar chart */
+  .barchart { display: flex; align-items: flex-end; gap: 18px; height: 200px; padding: 10px 4px 0; }
+  .barchart .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 9px; height: 100%; justify-content: flex-end; }
+  .barchart .stack { width: 100%; max-width: 46px; display: flex; flex-direction: column; justify-content: flex-end; gap: 3px; height: 100%; }
+  .barchart .bv { width: 100%; border-radius: 7px 7px 4px 4px; position: relative; }
+  .barchart .bv.prak { background: linear-gradient(180deg,#5eead4,#2dd4bf); }
+  .barchart .bv.tul  { background: linear-gradient(180deg,#0d9488,#0f766e); border-radius: 4px 4px 7px 7px; }
+  .barchart .lab { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+  .barchart .val { font-size: 11px; font-weight: 800; color: var(--ink); }
+
+  .legend { display:flex; gap:16px; }
+  .legend span { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--muted); }
+  .legend i { width:11px; height:11px; border-radius:4px; }
+
+  /* donut */
+  .donut-wrap { display:flex; align-items:center; gap: 22px; }
+  .donut-center { text-align:center; }
+  .donut-center .big { font-size: 26px; font-weight: 800; letter-spacing:-1px; }
+  .donut-center .sm { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .donut-legend { display:flex; flex-direction:column; gap: 12px; flex:1; }
+  .dl-item { display:flex; align-items:center; gap:10px; }
+  .dl-item i { width:11px;height:11px;border-radius:4px; flex:0 0 auto; }
+  .dl-item .t { font-weight:700; font-size:13px; }
+  .dl-item .n { margin-left:auto; font-weight:800; font-variant-numeric:tabular-nums; }
+  .dl-item .p { font-size:11.5px; color:var(--muted); font-weight:600; }
+
+  .kelas-row { display:flex; align-items:center; gap:14px; padding: 13px 0; border-bottom:1px solid var(--line-2); }
+  .kelas-row:last-child { border-bottom:0; }
+  .kelas-row .kbadge { width:42px;height:42px;border-radius:12px; display:grid;place-items:center; font-weight:800; font-size:13px; flex:0 0 auto; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+      <div><div class="name">Raport Online</div><div class="sub">Ponpes Al-Hikmah</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Menu</div>
+      <a class="active" href="dashboard-a.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg> Dashboard</a>
+      <a href="siswa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/><path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/></svg> Siswa &amp; Kelas <span class="pill">214</span></a>
+      <a href="input-nilai.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/></svg> Input Nilai</a>
+      <a href="raport.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z" transform="translate(-1 0)"/><path d="M13 3v5h5"/><path d="M8 13h6M8 17h4"/></svg> Cetak Raport</a>
+      <div class="nav-label">Lainnya</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v8M8 12h8" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg> Mata Pelajaran</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg> Pengaturan</a>
+    </nav>
+    <div class="foot">
+      <div class="av">OP</div>
+      <div class="who"><b>Ustadz Hamid</b><br><span>Operator</span></div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="crumb">Rekap nilai &amp; kenaikan kelas</div>
+      </div>
+      <div class="spacer"></div>
+
+      <!-- Lembaga toggle -->
+      <div class="seg" title="Pilih lembaga">
+        <button class="on">TPQ</button>
+        <button>Madin</button>
+      </div>
+      <!-- Periode toggle -->
+      <div class="seg gold" title="Periode ujian">
+        <button>UTS</button>
+        <button class="on">UAS</button>
+      </div>
+      <div class="field select">T.A. 2025/2026</div>
+      <button class="icon-btn"><span class="dot-badge"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/><path d="M10 19a2 2 0 004 0"/></svg></button>
+    </header>
+
+    <div class="content">
+      <div class="greet">
+        <div class="badge b-gold badge-ay" style="font-size:14px; padding:6px 12px;">السلام عليكم</div>
+        <div>
+          <div style="font-weight:800; font-size:16px;">TPQ · Semester Genap · Ujian Akhir Semester</div>
+          <div class="muted" style="font-size:13px;">Periode UAS aktif — keputusan kenaikan kelas dapat dikonfirmasi.</div>
+        </div>
+        <div style="margin-left:auto" class="row">
+          <a class="btn" href="input-nilai.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Input Nilai</a>
+          <a class="btn primary" href="raport.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg> Cetak Massal</a>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="grid stat-grid">
+        <div class="stat">
+          <div class="ic teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/><path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/></svg></div>
+          <div class="label">Total Santri TPQ</div>
+          <div class="value">118</div>
+          <div class="delta up">▲ 9 santri baru</div>
+        </div>
+        <div class="stat">
+          <div class="ic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 6-7"/><path d="M16 4h4v4"/></svg></div>
+          <div class="label">Rata-rata Nilai</div>
+          <div class="value">84.6<small>/100</small></div>
+          <div class="delta up">▲ 2.4 dari UTS</div>
+        </div>
+        <div class="stat">
+          <div class="ic green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l4 4 7-7"/><path d="M14 17l3 3 4-4"/></svg></div>
+          <div class="label">Disarankan Naik</div>
+          <div class="value">104</div>
+          <div class="delta up">88% santri</div>
+        </div>
+        <div class="stat">
+          <div class="ic amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9l-8 14A2 2 0 004 21h16a2 2 0 001.7-3.1l-8-14a2 2 0 00-3.4 0z"/></svg></div>
+          <div class="label">Perlu Ditinjau</div>
+          <div class="value">14</div>
+          <div class="delta down">12% · tinggal/koreksi</div>
+        </div>
+      </div>
+
+      <!-- MAIN GRID -->
+      <div class="grid main-grid">
+        <!-- Bar chart -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Rata-rata Nilai per Kelas</h3>
+              <div class="sub">Praktik vs Tertulis · 6 kelas TPQ</div>
+            </div>
+            <div class="spacer"></div>
+            <div class="legend">
+              <span><i style="background:#2dd4bf"></i> Praktik</span>
+              <span><i style="background:#0f766e"></i> Tertulis</span>
+            </div>
+          </div>
+          <div class="card-pad">
+            <div class="barchart">
+              <div class="col"><div class="stack"><div class="bv prak" style="height:43%"></div><div class="bv tul" style="height:40%"></div></div><div class="val">86</div><div class="lab">Kelas 1</div></div>
+              <div class="col"><div class="stack"><div class="bv prak" style="height:41%"></div><div class="bv tul" style="height:38%"></div></div><div class="val">82</div><div class="lab">Kelas 2</div></div>
+              <div class="col"><div class="stack"><div class="bv prak" style="height:46%"></div><div class="bv tul" style="height:42%"></div></div><div class="val">89</div><div class="lab">Kelas 3</div></div>
+              <div class="col"><div class="stack"><div class="bv prak" style="height:39%"></div><div class="bv tul" style="height:37%"></div></div><div class="val">80</div><div class="lab">Kelas 4</div></div>
+              <div class="col"><div class="stack"><div class="bv prak" style="height:44%"></div><div class="bv tul" style="height:41%"></div></div><div class="val">87</div><div class="lab">Kelas 5</div></div>
+              <div class="col"><div class="stack"><div class="bv prak" style="height:42%"></div><div class="bv tul" style="height:39%"></div></div><div class="val">84</div><div class="lab">Kelas 6</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Donut naik/tinggal -->
+        <div class="card">
+          <div class="card-head"><h3>Status Kenaikan</h3><div class="sub" style="margin-left:auto">Saran sistem</div></div>
+          <div class="card-pad">
+            <div class="donut-wrap">
+              <svg width="130" height="130" viewBox="0 0 42 42" style="flex:0 0 auto">
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#eef2f5" stroke-width="6"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#16a34a" stroke-width="6" stroke-dasharray="88 12" stroke-dashoffset="25" stroke-linecap="round"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#d97706" stroke-width="6" stroke-dasharray="9 91" stroke-dashoffset="-62" stroke-linecap="round"/>
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="#dc2626" stroke-width="6" stroke-dasharray="3 97" stroke-dashoffset="-71" stroke-linecap="round"/>
+              </svg>
+              <div class="donut-legend">
+                <div class="dl-item"><i style="background:#16a34a"></i><span class="t">Naik</span><span class="n">104</span><span class="p">88%</span></div>
+                <div class="dl-item"><i style="background:#d97706"></i><span class="t">Tinjau</span><span class="n">11</span><span class="p">9%</span></div>
+                <div class="dl-item"><i style="background:#dc2626"></i><span class="t">Tinggal</span><span class="n">3</span><span class="p">3%</span></div>
+              </div>
+            </div>
+            <hr class="hr" style="margin:18px 0 14px">
+            <div class="row between" style="font-size:12.5px;">
+              <span class="muted" style="font-weight:600">Sudah dikonfirmasi operator</span>
+              <span style="font-weight:800">96 / 118</span>
+            </div>
+            <div class="bar" style="margin-top:9px"><i style="width:81%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower grid -->
+      <div class="grid main-grid" style="margin-top:18px">
+        <!-- Class breakdown -->
+        <div class="card">
+          <div class="card-head">
+            <h3>Ringkasan per Kelas</h3>
+            <div class="spacer"></div>
+            <a class="btn sm ghost" href="siswa.html">Lihat semua →</a>
+          </div>
+          <div class="card-pad" style="padding-top:6px; padding-bottom:6px;">
+            <div class="kelas-row">
+              <div class="kbadge b-teal">1</div>
+              <div><b style="font-size:14px">TPQ Kelas 1</b><div class="muted" style="font-size:12px">Wali: Ust. Salim · 22 santri</div></div>
+              <div style="margin-left:auto; text-align:right">
+                <div class="score hi" style="font-size:16px">86.1</div>
+                <div class="muted" style="font-size:11px">rata-rata</div>
+              </div>
+              <span class="badge b-green" style="margin-left:8px"><span class="dot"></span>21 naik</span>
+            </div>
+            <div class="kelas-row">
+              <div class="kbadge b-teal">2</div>
+              <div><b style="font-size:14px">TPQ Kelas 2</b><div class="muted" style="font-size:12px">Wali: Ust. Farid · 20 santri</div></div>
+              <div style="margin-left:auto; text-align:right"><div class="score mid" style="font-size:16px">82.4</div><div class="muted" style="font-size:11px">rata-rata</div></div>
+              <span class="badge b-amber" style="margin-left:8px"><span class="dot"></span>2 tinjau</span>
+            </div>
+            <div class="kelas-row">
+              <div class="kbadge b-teal">3</div>
+              <div><b style="font-size:14px">TPQ Kelas 3</b><div class="muted" style="font-size:12px">Wali: Usth. Maryam · 21 santri</div></div>
+              <div style="margin-left:auto; text-align:right"><div class="score hi" style="font-size:16px">88.9</div><div class="muted" style="font-size:11px">rata-rata</div></div>
+              <span class="badge b-green" style="margin-left:8px"><span class="dot"></span>21 naik</span>
+            </div>
+            <div class="kelas-row">
+              <div class="kbadge b-teal">4</div>
+              <div><b style="font-size:14px">TPQ Kelas 4</b><div class="muted" style="font-size:12px">Wali: Ust. Zubair · 19 santri</div></div>
+              <div style="margin-left:auto; text-align:right"><div class="score mid" style="font-size:16px">80.2</div><div class="muted" style="font-size:11px">rata-rata</div></div>
+              <span class="badge b-red" style="margin-left:8px"><span class="dot"></span>2 tinggal</span>
+            </div>
+            <div class="kelas-row">
+              <div class="kbadge b-teal">5</div>
+              <div><b style="font-size:14px">TPQ Kelas 5</b><div class="muted" style="font-size:12px">Wali: Usth. Halimah · 18 santri</div></div>
+              <div style="margin-left:auto; text-align:right"><div class="score hi" style="font-size:16px">87.3</div><div class="muted" style="font-size:11px">rata-rata</div></div>
+              <span class="badge b-green" style="margin-left:8px"><span class="dot"></span>18 naik</span>
+            </div>
+            <div class="kelas-row">
+              <div class="kbadge b-teal">6</div>
+              <div><b style="font-size:14px">TPQ Kelas 6</b><div class="muted" style="font-size:12px">Wali: Ust. Anwar · 18 santri · <span style="color:var(--gold);font-weight:700">akhir jenjang</span></div></div>
+              <div style="margin-left:auto; text-align:right"><div class="score hi" style="font-size:16px">84.0</div><div class="muted" style="font-size:11px">rata-rata</div></div>
+              <span class="badge b-teal" style="margin-left:8px"><span class="dot"></span>lulus</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- UTS vs UAS -->
+        <div class="card">
+          <div class="card-head"><h3>Perbandingan UTS → UAS</h3></div>
+          <div class="card-pad">
+            <div class="row between" style="margin-bottom:18px">
+              <div><div class="muted" style="font-size:12px;font-weight:600">Rata-rata UTS</div><div style="font-size:22px;font-weight:800">82.2</div></div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted-2)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <div style="text-align:right"><div class="muted" style="font-size:12px;font-weight:600">Rata-rata UAS</div><div style="font-size:22px;font-weight:800;color:var(--green)">84.6</div></div>
+            </div>
+            <!-- mini dual line as bars -->
+            <div style="display:flex;flex-direction:column;gap:13px">
+              <div>
+                <div class="row between" style="font-size:12px;font-weight:700;margin-bottom:6px"><span>Tahsin / Tilawah</span><span class="muted">85 → <b style="color:var(--green)">88</b></span></div>
+                <div class="bar"><i style="width:88%"></i></div>
+              </div>
+              <div>
+                <div class="row between" style="font-size:12px;font-weight:700;margin-bottom:6px"><span>Tajwid</span><span class="muted">80 → <b style="color:var(--green)">83</b></span></div>
+                <div class="bar"><i style="width:83%"></i></div>
+              </div>
+              <div>
+                <div class="row between" style="font-size:12px;font-weight:700;margin-bottom:6px"><span>Tahfidz Juz 30</span><span class="muted">84 → <b style="color:var(--green)">86</b></span></div>
+                <div class="bar"><i style="width:86%"></i></div>
+              </div>
+              <div>
+                <div class="row between" style="font-size:12px;font-weight:700;margin-bottom:6px"><span>Praktik Ibadah</span><span class="muted">79 → <b style="color:var(--amber)">81</b></span></div>
+                <div class="bar"><i style="width:81%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></i></div>
+              </div>
+              <div>
+                <div class="row between" style="font-size:12px;font-weight:700;margin-bottom:6px"><span>Imla' (Menulis Arab)</span><span class="muted">81 → <b style="color:var(--green)">84</b></span></div>
+                <div class="bar"><i style="width:84%"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

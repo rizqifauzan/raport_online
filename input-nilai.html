@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Input Nilai — Raport Online Pesantren</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .grade-wrap { overflow-x: auto; border-radius: var(--r-lg); }
+  table.grade { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; min-width: 1180px; }
+  table.grade th, table.grade td { white-space: nowrap; }
+
+  /* grouped header */
+  .grade thead .mapel-th {
+    background: #f4f8f7; color: var(--brand-700); font-weight: 800; font-size: 12px;
+    text-align: center; padding: 9px 8px; border-bottom: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .grade thead .sub-th {
+    background: #fafcfc; color: var(--muted); font-weight: 700; font-size: 10.5px;
+    text-transform: uppercase; letter-spacing:.4px; text-align: center; padding: 7px 6px;
+    border-bottom: 1px solid var(--line); border-left: 1px solid var(--line-2);
+  }
+  .grade thead .sub-th.rata { background:#f0fdfa; color:var(--brand-600); }
+  .grade thead .sticky-th, .grade tbody .sticky-td {
+    position: sticky; left: 0; z-index: 5; background: var(--surface);
+    box-shadow: 2px 0 0 var(--line);
+  }
+  .grade thead .sticky-th { z-index: 6; background:#fafcfc; }
+
+  .grade tbody td { border-bottom: 1px solid var(--line-2); border-left: 1px solid var(--line-2); padding: 0; text-align:center; }
+  .grade tbody td.sticky-td { padding: 10px 14px; text-align:left; }
+  .grade tbody tr:hover td { background: #fafdfc; }
+  .grade tbody tr:hover .sticky-td { background:#fafdfc; }
+
+  .cell-in {
+    width: 100%; border: 0; outline: 0; background: transparent; text-align: center;
+    font-family: inherit; font-size: 13.5px; font-weight: 700; padding: 11px 4px; color: var(--ink);
+    font-variant-numeric: tabular-nums; transition:.12s;
+  }
+  .cell-in:focus { background: var(--brand-tint); box-shadow: inset 0 0 0 2px var(--brand); border-radius:6px; }
+  td.rata-cell { background:#f7fefc; font-weight:800; font-variant-numeric:tabular-nums; color:var(--brand-700); padding:11px 8px; }
+  td.empty .cell-in { color: var(--muted-2); }
+
+  .final-cell { padding: 8px 12px !important; }
+  .index-badge { display:inline-grid; place-items:center; width:24px;height:24px;border-radius:7px;background:#eef2f5;color:var(--muted);font-weight:800;font-size:11px; }
+
+  .legend-row { display:flex; gap:18px; flex-wrap:wrap; align-items:center; }
+  .legend-row .lg { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:var(--muted); }
+  .legend-row .sw { width:14px;height:14px;border-radius:4px; }
+  .save-bar {
+    position: sticky; bottom: 0; margin-top:18px; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--r-lg); box-shadow:var(--shadow-lg); padding:13px 18px; display:flex; align-items:center; gap:14px;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+      <div><div class="name">Raport Online</div><div class="sub">Ponpes Al-Hikmah</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Menu</div>
+      <a href="dashboard-a.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg> Dashboard</a>
+      <a href="siswa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/><path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/></svg> Siswa &amp; Kelas <span class="pill">214</span></a>
+      <a class="active" href="input-nilai.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/></svg> Input Nilai</a>
+      <a href="raport.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13H6z"/><path d="M13 3v5h5"/><path d="M9 13h6M9 17h4"/></svg> Cetak Raport</a>
+      <div class="nav-label">Lainnya</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v8M8 12h8" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg> Mata Pelajaran</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg> Pengaturan</a>
+    </nav>
+    <div class="foot"><div class="av">OP</div><div class="who"><b>Ustadz Hamid</b><br><span>Operator</span></div></div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Input Nilai</h1><div class="crumb">Entri cepat per kelas</div></div>
+      <div class="spacer"></div>
+      <div class="seg"><button class="on">TPQ</button><button>Madin</button></div>
+      <div class="seg gold"><button>UTS</button><button class="on">UAS</button></div>
+      <div class="field select">T.A. 2025/2026</div>
+    </header>
+
+    <div class="content">
+      <!-- selectors -->
+      <div class="row between wrap" style="margin-bottom:16px">
+        <div class="row wrap">
+          <div class="field select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18" stroke-linecap="round"/></svg> Kelas 3</div>
+          <div class="field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/></svg>21 santri</div>
+          <span class="badge b-gold" style="padding:7px 12px"><span class="dot"></span> Periode: UAS Genap</span>
+        </div>
+        <div class="legend-row">
+          <span class="lg"><span class="sw" style="background:#5eead4"></span>Praktik</span>
+          <span class="lg"><span class="sw" style="background:#0f766e"></span>Tertulis</span>
+          <span class="lg"><span class="sw" style="background:#0d9488"></span>Rata = otomatis</span>
+        </div>
+      </div>
+
+      <div class="card" style="overflow:hidden">
+        <div class="card-head">
+          <div><h3>TPQ · Kelas 3 — Tahun Ajaran 2025/2026</h3><div class="sub">Wali kelas: Usth. Maryam · isi Praktik &amp; Tertulis, rata-rata terhitung otomatis</div></div>
+          <div class="spacer"></div>
+          <span class="badge b-amber"><span class="dot"></span>3 sel belum terisi</span>
+          <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 20h16"/></svg> Impor Excel</button>
+        </div>
+
+        <div class="grade-wrap">
+          <table class="grade">
+            <thead>
+              <tr>
+                <th rowspan="2" class="sticky-th" style="text-align:left; padding:9px 14px; min-width:240px; vertical-align:bottom; border-bottom:1px solid var(--line)">Santri</th>
+                <th colspan="3" class="mapel-th">Tahsin / Tilawah</th>
+                <th colspan="3" class="mapel-th">Tajwid</th>
+                <th colspan="3" class="mapel-th">Tahfidz Juz 30</th>
+                <th colspan="3" class="mapel-th">Doa &amp; Adab</th>
+                <th colspan="3" class="mapel-th">Praktik Ibadah</th>
+                <th colspan="3" class="mapel-th">Imla'</th>
+                <th rowspan="2" class="mapel-th" style="background:#0d4842;color:#fff;vertical-align:bottom;min-width:88px">Nilai<br>Akhir</th>
+              </tr>
+              <tr>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+                <th class="sub-th">Prk</th><th class="sub-th">Tul</th><th class="sub-th rata">Rt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">1</span><div><b>Abdurrahman Hakim</b><span>NIS 24301</span></div></div></td>
+                <td><input class="cell-in" value="90"></td><td><input class="cell-in" value="88"></td><td class="rata-cell">89.0</td>
+                <td><input class="cell-in" value="85"></td><td><input class="cell-in" value="82"></td><td class="rata-cell">83.5</td>
+                <td><input class="cell-in" value="92"></td><td><input class="cell-in" value="90"></td><td class="rata-cell">91.0</td>
+                <td><input class="cell-in" value="88"></td><td><input class="cell-in" value="86"></td><td class="rata-cell">87.0</td>
+                <td><input class="cell-in" value="84"></td><td><input class="cell-in" value="80"></td><td class="rata-cell">82.0</td>
+                <td><input class="cell-in" value="86"></td><td><input class="cell-in" value="84"></td><td class="rata-cell">85.0</td>
+                <td class="final-cell"><span class="score hi" style="font-size:15px">86.3</span></td>
+              </tr>
+              <!-- Row 2 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">2</span><div><b>Aisyah Putri Ramadhani</b><span>NIS 24302</span></div></div></td>
+                <td><input class="cell-in" value="94"></td><td><input class="cell-in" value="92"></td><td class="rata-cell">93.0</td>
+                <td><input class="cell-in" value="90"></td><td><input class="cell-in" value="88"></td><td class="rata-cell">89.0</td>
+                <td><input class="cell-in" value="95"></td><td><input class="cell-in" value="93"></td><td class="rata-cell">94.0</td>
+                <td><input class="cell-in" value="92"></td><td><input class="cell-in" value="90"></td><td class="rata-cell">91.0</td>
+                <td><input class="cell-in" value="89"></td><td><input class="cell-in" value="87"></td><td class="rata-cell">88.0</td>
+                <td><input class="cell-in" value="91"></td><td><input class="cell-in" value="90"></td><td class="rata-cell">90.5</td>
+                <td class="final-cell"><span class="score hi" style="font-size:15px">90.9</span></td>
+              </tr>
+              <!-- Row 3 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">3</span><div><b>Bilal Arrahman</b><span>NIS 24303</span></div></div></td>
+                <td><input class="cell-in" value="80"></td><td><input class="cell-in" value="76"></td><td class="rata-cell">78.0</td>
+                <td><input class="cell-in" value="78"></td><td><input class="cell-in" value="74"></td><td class="rata-cell">76.0</td>
+                <td><input class="cell-in" value="84"></td><td><input class="cell-in" value="80"></td><td class="rata-cell">82.0</td>
+                <td><input class="cell-in" value="82"></td><td><input class="cell-in" value="80"></td><td class="rata-cell">81.0</td>
+                <td class="empty"><input class="cell-in" value="" placeholder="—"></td><td class="empty"><input class="cell-in" value="" placeholder="—"></td><td class="rata-cell" style="color:var(--muted-2)">—</td>
+                <td><input class="cell-in" value="79"></td><td><input class="cell-in" value="77"></td><td class="rata-cell">78.0</td>
+                <td class="final-cell"><span class="score mid" style="font-size:15px">79.0</span></td>
+              </tr>
+              <!-- Row 4 (focused demo) -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">4</span><div><b>Fauzan Adhim</b><span>NIS 24304</span></div></div></td>
+                <td><input class="cell-in" value="86"></td><td><input class="cell-in" value="84"></td><td class="rata-cell">85.0</td>
+                <td><input class="cell-in" value="82"></td><td><input class="cell-in" value="80"></td><td class="rata-cell">81.0</td>
+                <td><input class="cell-in" value="88" style="background:var(--brand-tint);box-shadow:inset 0 0 0 2px var(--brand);border-radius:6px"></td><td><input class="cell-in" value="85"></td><td class="rata-cell">86.5</td>
+                <td><input class="cell-in" value="84"></td><td><input class="cell-in" value="83"></td><td class="rata-cell">83.5</td>
+                <td><input class="cell-in" value="80"></td><td><input class="cell-in" value="78"></td><td class="rata-cell">79.0</td>
+                <td><input class="cell-in" value="83"></td><td><input class="cell-in" value="81"></td><td class="rata-cell">82.0</td>
+                <td class="final-cell"><span class="score hi" style="font-size:15px">82.8</span></td>
+              </tr>
+              <!-- Row 5 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">5</span><div><b>Hafshah Nuraini</b><span>NIS 24305</span></div></div></td>
+                <td><input class="cell-in" value="88"></td><td><input class="cell-in" value="86"></td><td class="rata-cell">87.0</td>
+                <td><input class="cell-in" value="85"></td><td><input class="cell-in" value="84"></td><td class="rata-cell">84.5</td>
+                <td><input class="cell-in" value="90"></td><td><input class="cell-in" value="88"></td><td class="rata-cell">89.0</td>
+                <td><input class="cell-in" value="87"></td><td><input class="cell-in" value="86"></td><td class="rata-cell">86.5</td>
+                <td><input class="cell-in" value="85"></td><td><input class="cell-in" value="83"></td><td class="rata-cell">84.0</td>
+                <td><input class="cell-in" value="86"></td><td><input class="cell-in" value="85"></td><td class="rata-cell">85.5</td>
+                <td class="final-cell"><span class="score hi" style="font-size:15px">86.1</span></td>
+              </tr>
+              <!-- Row 6 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">6</span><div><b>Ibrahim Khalil</b><span>NIS 24306</span></div></div></td>
+                <td><input class="cell-in" value="76"></td><td><input class="cell-in" value="72"></td><td class="rata-cell">74.0</td>
+                <td><input class="cell-in" value="74"></td><td><input class="cell-in" value="70"></td><td class="rata-cell">72.0</td>
+                <td><input class="cell-in" value="80"></td><td><input class="cell-in" value="76"></td><td class="rata-cell">78.0</td>
+                <td><input class="cell-in" value="78"></td><td><input class="cell-in" value="75"></td><td class="rata-cell">76.5</td>
+                <td><input class="cell-in" value="75"></td><td><input class="cell-in" value="72"></td><td class="rata-cell">73.5</td>
+                <td><input class="cell-in" value="77"></td><td><input class="cell-in" value="74"></td><td class="rata-cell">75.5</td>
+                <td class="final-cell"><span class="score mid" style="font-size:15px">74.9</span></td>
+              </tr>
+              <!-- Row 7 -->
+              <tr>
+                <td class="sticky-td"><div class="who-cell"><span class="index-badge">7</span><div><b>Maryam Shofiyah</b><span>NIS 24307</span></div></div></td>
+                <td><input class="cell-in" value="92"></td><td><input class="cell-in" value="90"></td><td class="rata-cell">91.0</td>
+                <td><input class="cell-in" value="88"></td><td><input class="cell-in" value="87"></td><td class="rata-cell">87.5</td>
+                <td><input class="cell-in" value="93"></td><td><input class="cell-in" value="91"></td><td class="rata-cell">92.0</td>
+                <td><input class="cell-in" value="90"></td><td><input class="cell-in" value="89"></td><td class="rata-cell">89.5</td>
+                <td><input class="cell-in" value="88"></td><td><input class="cell-in" value="86"></td><td class="rata-cell">87.0</td>
+                <td><input class="cell-in" value="90"></td><td><input class="cell-in" value="88"></td><td class="rata-cell">89.0</td>
+                <td class="final-cell"><span class="score hi" style="font-size:15px">89.3</span></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr style="background:#f4f8f7;font-weight:800">
+                <td class="sticky-td" style="background:#f4f8f7;font-weight:800;padding:11px 14px">Rata-rata Kelas</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">85.3</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">81.9</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">88.0</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">85.3</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">81.4</td>
+                <td colspan="3" style="text-align:center;color:var(--brand-700)">83.5</td>
+                <td style="text-align:center;color:var(--brand-700);font-size:14px">84.2</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sticky save bar -->
+      <div class="save-bar">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <div style="font-size:12.5px"><b>Tersimpan otomatis</b> <span class="muted">— 18:24 · 124 dari 126 sel terisi</span></div>
+        <div class="spacer"></div>
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 5l7 7-7 7" transform="scale(-1,1) translate(-24,0)"/></svg> Kelas Sebelumnya</button>
+        <button class="btn">Kelas Berikutnya ›</button>
+        <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Simpan &amp; Kunci Nilai</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raport Online Pesantren — Mockup</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { background:
+    radial-gradient(1200px 600px at 80% -10%, #e6fbf6 0%, transparent 55%),
+    radial-gradient(900px 500px at 0% 110%, #fbf3e3 0%, transparent 50%),
+    var(--bg);
+  }
+  .hub { max-width: 1100px; margin: 0 auto; padding: 56px 28px 72px; }
+  .hub-head { text-align: center; margin-bottom: 44px; }
+  .hub-logo {
+    width: 64px; height: 64px; border-radius: 18px; margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--brand) 0%, #2dd4bf 100%);
+    display: grid; place-items: center; box-shadow: 0 14px 34px rgba(13,148,136,.32);
+  }
+  .hub-logo svg { width: 34px; height: 34px; }
+  .hub h1 { font-size: 34px; font-weight: 800; letter-spacing: -1px; margin: 0 0 10px; }
+  .hub h1 span { color: var(--brand-600); }
+  .hub-sub { color: var(--muted); font-size: 15px; max-width: 560px; margin: 0 auto; line-height: 1.6; }
+  .hub-arabic { font-family: 'Amiri', serif; font-size: 22px; color: var(--gold); margin-bottom: 14px; }
+  .chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .grid-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 16px; }
+  .mock {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-xl);
+    overflow: hidden; box-shadow: var(--shadow); transition: .2s; display: block;
+  }
+  .mock:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--brand-100); }
+  .mock .thumb { height: 170px; position: relative; overflow: hidden; border-bottom: 1px solid var(--line-2); }
+  .mock .thumb .tag {
+    position: absolute; top: 12px; left: 12px; z-index: 2;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(4px);
+  }
+  .mock .body { padding: 18px 20px 20px; }
+  .mock .body h3 { margin: 0 0 5px; font-size: 16.5px; font-weight: 800; letter-spacing: -.3px; }
+  .mock .body p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .mock .go { margin-top: 14px; color: var(--brand-600); font-weight: 700; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+
+  /* mini illustrations inside thumbs */
+  .t-dash  { background: linear-gradient(135deg,#0b3b37,#0e524b); }
+  .t-dashb { background: linear-gradient(135deg,#0f172a,#1e293b); }
+  .t-siswa { background: linear-gradient(135deg,#0d9488,#2dd4bf); }
+  .t-input { background: linear-gradient(135deg,#7c3aed,#a78bfa); }
+  .t-rapor { background: linear-gradient(135deg,#d4a056,#eac985); }
+  .mini { position: absolute; inset: 22px 18px; }
+  .mini .r { background: rgba(255,255,255,.9); border-radius: 6px; box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+  .deck { display:flex; gap:8px; }
+  .deck .r { height: 46px; flex:1; }
+  .lines { margin-top: 10px; display:flex; flex-direction:column; gap:7px; }
+  .lines .r { height: 9px; }
+  .footer-note { text-align: center; color: var(--muted-2); font-size: 12.5px; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="hub">
+  <div class="hub-head">
+    <div class="hub-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+    </div>
+    <div class="hub-arabic">رَبِّ زِدْنِي عِلْمًا</div>
+    <h1>Raport Online <span>Pesantren</span></h1>
+    <p class="hub-sub">Sistem penilaian & kenaikan kelas untuk <b>TPQ</b> &amp; <b>Madin</b> — dikelola satu operator. Berikut kumpulan mockup hi-fi (klik untuk membuka).</p>
+    <div class="chips">
+      <span class="badge b-teal"><span class="dot"></span> TPQ · 6 Kelas</span>
+      <span class="badge b-violet"><span class="dot"></span> Madin · 7 Kelas</span>
+      <span class="badge b-gold"><span class="dot"></span> UTS &amp; UAS</span>
+      <span class="badge b-green"><span class="dot"></span> Praktik + Tertulis</span>
+    </div>
+  </div>
+
+  <div class="grid-cards">
+    <a class="mock" href="dashboard-a.html">
+      <div class="thumb t-dash">
+        <span class="badge b-teal tag">Variasi A · Friendly</span>
+        <div class="mini">
+          <div class="deck"><div class="r"></div><div class="r"></div><div class="r"></div></div>
+          <div class="lines"><div class="r" style="width:80%"></div><div class="r" style="width:55%"></div><div class="r" style="width:68%"></div></div>
+        </div>
+      </div>
+      <div class="body">
+        <h3>Dashboard Rekap Nilai — A</h3>
+        <p>Tampilan ramah &amp; lega. Kartu statistik besar, grafik rata-rata per kelas, distribusi naik/tinggal.</p>
+        <span class="go">Buka mockup →</span>
+      </div>
+    </a>
+
+    <a class="mock" href="dashboard-b.html">
+      <div class="thumb t-dashb">
+        <span class="badge b-violet tag">Variasi B · Command</span>
+        <div class="mini">
+          <div class="lines"><div class="r" style="width:100%;height:14px"></div></div>
+          <div class="deck" style="margin-top:10px"><div class="r" style="height:64px"></div><div class="r" style="height:64px;flex:1.6"></div></div>
+        </div>
+      </div>
+      <div class="body">
+        <h3>Dashboard Rekap Nilai — B</h3>
+        <p>Tampilan padat data (“command center”). KPI strip, tabel kenaikan dengan konfirmasi cepat, banding UTS↔UAS.</p>
+        <span class="go">Buka mockup →</span>
+      </div>
+    </a>
+
+    <a class="mock" href="siswa.html">
+      <div class="thumb t-siswa">
+        <span class="badge b-teal tag">Manajemen</span>
+        <div class="mini">
+          <div class="deck"><div class="r" style="height:30px;flex:.6"></div><div class="r" style="height:30px"></div></div>
+          <div class="lines" style="margin-top:8px"><div class="r" style="width:100%;height:13px"></div><div class="r" style="width:100%;height:13px"></div><div class="r" style="width:100%;height:13px"></div></div>
+        </div>
+      </div>
+      <div class="body">
+        <h3>Manajemen Siswa &amp; Kelas</h3>
+        <p>Daftar santri, tambah/edit, pengelompokan kelas per lembaga, ringkasan tiap kelas.</p>
+        <span class="go">Buka mockup →</span>
+      </div>
+    </a>
+
+    <a class="mock" href="input-nilai.html">
+      <div class="thumb t-input">
+        <span class="badge b-violet tag">Input Cepat</span>
+        <div class="mini">
+          <div class="lines"><div class="r" style="width:100%;height:13px"></div><div class="r" style="width:100%;height:13px"></div><div class="r" style="width:100%;height:13px"></div><div class="r" style="width:100%;height:13px"></div></div>
+        </div>
+      </div>
+      <div class="body">
+        <h3>Input Nilai 1 Kelas</h3>
+        <p>Tabel cepat: baris santri × kolom mapel (Praktik/Tertulis), rata-rata auto-hitung, pilih periode UTS/UAS.</p>
+        <span class="go">Buka mockup →</span>
+      </div>
+    </a>
+
+    <a class="mock" href="raport.html" style="grid-column: span 2;">
+      <div class="thumb t-rapor" style="height:150px">
+        <span class="badge b-gold tag">Cetak · A4</span>
+        <div class="mini" style="inset:18px 28%">
+          <div class="r" style="height:100%;background:#fff"></div>
+        </div>
+      </div>
+      <div class="body">
+        <h3>Preview &amp; Cetak Raport per Santri</h3>
+        <p>Layout cetak A4 dengan identitas santri, nilai per mapel (praktik/tertulis/akhir), predikat Arab (Mumtaz–Rasib), keputusan kenaikan kelas, dan kolom tanda tangan.</p>
+        <span class="go">Buka mockup →</span>
+      </div>
+    </a>
+  </div>
+
+  <p class="footer-note">Mockup hi-fi · tidak fungsional · Plus Jakarta Sans · dummy data realistis</p>
+</div>
+</body>
+</html>

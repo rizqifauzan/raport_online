@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Siswa & Kelas — Raport Online Pesantren</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .class-rail { display:grid; grid-template-columns: repeat(6,1fr); gap:12px; margin-bottom:20px; }
+  .class-card {
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px;
+    box-shadow:var(--shadow-sm); cursor:pointer; transition:.15s; position:relative;
+  }
+  .class-card:hover { border-color:var(--brand-100); transform:translateY(-2px); box-shadow:var(--shadow); }
+  .class-card.active { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-tint); }
+  .class-card .kn { width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;margin-bottom:10px; }
+  .class-card .ct { font-weight:800; font-size:13.5px; }
+  .class-card .cm { font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .class-card .avg { position:absolute; top:14px; right:14px; font-weight:800; font-size:13px; }
+
+  .panel { display:grid; grid-template-columns: 1fr; gap:0; }
+  .toolbar { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--line-2); flex-wrap:wrap; }
+  .checkbox { width:18px;height:18px;border-radius:5px;border:1.6px solid var(--muted-2);display:inline-grid;place-items:center;flex:0 0 auto; }
+  .checkbox.on { background:var(--brand); border-color:var(--brand); }
+  .checkbox.on svg { width:12px;height:12px; }
+  .menu-dot { width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--muted-2); border:1px solid transparent; }
+  .menu-dot:hover { background:#f1f5f7; color:var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+      <div><div class="name">Raport Online</div><div class="sub">Ponpes Al-Hikmah</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Menu</div>
+      <a href="dashboard-a.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg> Dashboard</a>
+      <a class="active" href="siswa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/><path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/></svg> Siswa &amp; Kelas <span class="pill">214</span></a>
+      <a href="input-nilai.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/></svg> Input Nilai</a>
+      <a href="raport.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13H6z"/><path d="M13 3v5h5"/><path d="M9 13h6M9 17h4"/></svg> Cetak Raport</a>
+      <div class="nav-label">Lainnya</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v8M8 12h8" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg> Mata Pelajaran</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg> Pengaturan</a>
+    </nav>
+    <div class="foot"><div class="av">OP</div><div class="who"><b>Ustadz Hamid</b><br><span>Operator</span></div></div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div><h1>Siswa &amp; Kelas</h1><div class="crumb">Kelola data santri per lembaga</div></div>
+      <div class="spacer"></div>
+      <div class="seg"><button class="on">TPQ</button><button>Madin</button></div>
+      <div class="field select">T.A. 2025/2026</div>
+      <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 9a6 6 0 1112 0c0 4 1.5 5.5 2 6H4c.5-.5 2-2 2-6z"/><path d="M10 19a2 2 0 004 0"/></svg></button>
+    </header>
+
+    <div class="content">
+      <!-- class rail -->
+      <div class="row between" style="margin-bottom:12px">
+        <div class="section-title">Kelas TPQ — 6 Kelas</div>
+        <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Tambah Kelas</button>
+      </div>
+      <div class="class-rail">
+        <div class="class-card active"><div class="kn b-teal">1</div><div class="ct">Kelas 1</div><div class="cm">22 santri</div><div class="avg score hi">86</div></div>
+        <div class="class-card"><div class="kn b-teal">2</div><div class="ct">Kelas 2</div><div class="cm">20 santri</div><div class="avg score mid">82</div></div>
+        <div class="class-card"><div class="kn b-teal">3</div><div class="ct">Kelas 3</div><div class="cm">21 santri</div><div class="avg score hi">89</div></div>
+        <div class="class-card"><div class="kn b-teal">4</div><div class="ct">Kelas 4</div><div class="cm">19 santri</div><div class="avg score mid">80</div></div>
+        <div class="class-card"><div class="kn b-teal">5</div><div class="ct">Kelas 5</div><div class="cm">18 santri</div><div class="avg score hi">87</div></div>
+        <div class="class-card"><div class="kn b-teal">6</div><div class="ct">Kelas 6</div><div class="cm">18 santri</div><div class="avg score hi">84</div></div>
+      </div>
+
+      <!-- student table -->
+      <div class="card panel">
+        <div class="toolbar">
+          <div style="font-weight:800;font-size:15px">TPQ · Kelas 1 <span class="muted" style="font-weight:600">— 22 santri</span></div>
+          <div class="spacer"></div>
+          <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg><input placeholder="Cari nama / NIS santri..."></div>
+          <div class="field select">Wali: Ust. Salim</div>
+          <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 20h16"/></svg> Impor</button>
+          <button class="btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Tambah Santri</button>
+        </div>
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th style="width:38px"><span class="checkbox"></span></th>
+              <th>Santri</th><th>NIS</th><th>L/P</th><th>Wali Santri</th><th>Rata-rata</th><th>Status</th><th style="width:48px"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="checkbox on"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#0d9488">AF</div><div><b>Ahmad Faiz Maulana</b><span>Lahir: Kediri, 14 Mar 2018</span></div></div></td>
+              <td class="num">24101</td><td><span class="badge b-blue">L</span></td>
+              <td>Bpk. Sulaiman</td><td><span class="score hi">88.5</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#7c3aed">NA</div><div><b>Nadia Aulia Rahma</b><span>Lahir: Blitar, 02 Jun 2018</span></div></div></td>
+              <td class="num">24102</td><td><span class="badge b-violet">P</span></td>
+              <td>Bpk. Ridwan</td><td><span class="score hi">90.2</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#2563eb">MR</div><div><b>Muhammad Rafa Pratama</b><span>Lahir: Kediri, 21 Jan 2018</span></div></div></td>
+              <td class="num">24103</td><td><span class="badge b-blue">L</span></td>
+              <td>Bpk. Hartono</td><td><span class="score mid">79.0</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#16a34a">KZ</div><div><b>Khalisa Zahra Putri</b><span>Lahir: Nganjuk, 09 Sep 2018</span></div></div></td>
+              <td class="num">24104</td><td><span class="badge b-violet">P</span></td>
+              <td>Bpk. Munir</td><td><span class="score hi">85.5</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#d4a056">YH</div><div><b>Yusuf Habibie Anwar</b><span>Lahir: Kediri, 30 Nov 2017</span></div></div></td>
+              <td class="num">24105</td><td><span class="badge b-blue">L</span></td>
+              <td>Bpk. Faizal</td><td><span class="score mid">76.5</span></td>
+              <td><span class="badge b-amber"><span class="dot"></span>Izin</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#dc2626">SA</div><div><b>Salma Aqila Husna</b><span>Lahir: Tulungagung, 17 Apr 2018</span></div></div></td>
+              <td class="num">24106</td><td><span class="badge b-violet">P</span></td>
+              <td>Bpk. Ghozali</td><td><span class="score hi">92.0</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+            <tr>
+              <td><span class="checkbox"></span></td>
+              <td><div class="who-cell"><div class="avatar" style="background:#0d9488">HF</div><div><b>Hamzah Firdaus Akbar</b><span>Lahir: Kediri, 05 Des 2017</span></div></div></td>
+              <td class="num">24107</td><td><span class="badge b-blue">L</span></td>
+              <td>Bpk. Saiful</td><td><span class="score hi">84.0</span></td>
+              <td><span class="badge b-green"><span class="dot"></span>Aktif</span></td>
+              <td><div class="menu-dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="row between" style="padding:14px 20px; border-top:1px solid var(--line-2)">
+          <span class="muted" style="font-size:12.5px">Menampilkan 1–7 dari 22 santri</span>
+          <div class="row" style="gap:6px">
+            <button class="btn sm">‹ Sebelumnya</button>
+            <button class="btn sm primary">1</button>
+            <button class="btn sm">2</button>
+            <button class="btn sm">3</button>
+            <button class="btn sm">Berikutnya ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

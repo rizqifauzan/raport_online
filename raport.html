@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cetak Raport — Raport Online Pesantren</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .stage { background:#e8edf0; min-height:100vh; }
+  /* floating toolbar */
+  .print-bar {
+    position: sticky; top:0; z-index:40; background:rgba(15,23,42,.92); backdrop-filter:blur(8px);
+    color:#fff; padding:12px 22px; display:flex; align-items:center; gap:14px;
+  }
+  .print-bar .pb-title { font-weight:800; font-size:14px; }
+  .print-bar .pb-sub { color:#9fb6c4; font-size:12px; }
+  .print-bar .spacer { flex:1; }
+  .pb-btn { display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:#fff;font-weight:700;font-size:13px;padding:8px 14px;border-radius:9px; }
+  .pb-btn svg { width:16px;height:16px; }
+  .pb-btn.primary { background:linear-gradient(135deg,#0d9488,#0f766e); border-color:transparent; }
+  .pb-seg { display:inline-flex; background:rgba(255,255,255,.08); border-radius:9px; padding:3px; gap:2px; }
+  .pb-seg button { border:0;background:transparent;color:#9fb6c4;font-weight:700;font-size:12.5px;padding:6px 12px;border-radius:7px; }
+  .pb-seg button.on { background:#fff; color:#0f172a; }
+
+  /* A4 sheet */
+  .sheet-area { padding: 28px 20px 60px; display:flex; justify-content:center; }
+  .sheet {
+    width: 794px; min-height: 1123px; background:#fff; box-shadow:0 10px 40px rgba(15,23,42,.18);
+    padding: 46px 50px; position:relative; color:#1a2433;
+  }
+  .sheet::before { /* subtle border frame */
+    content:""; position:absolute; inset:18px; border:1.5px solid #d8c6a0; border-radius:6px; pointer-events:none;
+  }
+  .sheet::after { content:""; position:absolute; inset:23px; border:.5px solid #e3d4b3; border-radius:4px; pointer-events:none; }
+
+  .kop { display:flex; align-items:center; gap:18px; padding-bottom:16px; border-bottom:3px double #0f766e; position:relative; }
+  .kop .seal { width:72px;height:72px;border-radius:50%; background:linear-gradient(135deg,#0d9488,#2dd4bf); display:grid;place-items:center; flex:0 0 auto; box-shadow:0 6px 16px rgba(13,148,136,.3); }
+  .kop .seal svg { width:40px;height:40px; }
+  .kop .kt { text-align:center; flex:1; }
+  .kop .kt .arab { font-family:'Amiri',serif; font-size:17px; color:var(--gold); margin-bottom:2px; }
+  .kop .kt h2 { margin:0; font-size:21px; font-weight:800; letter-spacing:.3px; color:#0b3b37; }
+  .kop .kt .l1 { font-size:13px; font-weight:700; color:#334155; margin-top:1px; }
+  .kop .kt .l2 { font-size:11px; color:#64748b; }
+
+  .doc-title { text-align:center; margin:18px 0 6px; }
+  .doc-title h3 { margin:0; font-size:15px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:#0f766e; }
+  .doc-title .sub { font-size:12px; color:#64748b; }
+
+  /* identity grid */
+  .ident { display:grid; grid-template-columns:1fr 1fr; gap:2px 40px; margin:16px 2px 18px; font-size:12.5px; }
+  .ident .ir { display:flex; padding:4px 0; }
+  .ident .ir .k { width:120px; color:#64748b; font-weight:600; }
+  .ident .ir .k::after { content:":"; float:right; }
+  .ident .ir .v { font-weight:700; color:#1a2433; }
+
+  table.rapor { width:100%; border-collapse:collapse; font-size:12.5px; margin-top:6px; }
+  table.rapor th { background:#0f766e; color:#fff; font-weight:700; padding:8px 10px; text-align:left; font-size:11.5px; }
+  table.rapor th.c, table.rapor td.c { text-align:center; }
+  table.rapor td { padding:7px 10px; border-bottom:1px solid #e7ebef; }
+  table.rapor tbody tr:nth-child(even) { background:#f7faf9; }
+  table.rapor .no { color:#94a3b8; text-align:center; width:28px; }
+  table.rapor .akhir { font-weight:800; font-variant-numeric:tabular-nums; }
+  table.rapor tfoot td { font-weight:800; background:#f0fdfa; color:#0f766e; padding:9px 10px; border-top:2px solid #0f766e; }
+
+  .pred { display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; font-family:'Amiri',serif; }
+  .p-mumtaz { background:#dcfce7; color:#15803d; }
+  .p-jayyidj { background:#dbeafe; color:#1d4ed8; }
+  .p-jayyid { background:#fef3c7; color:#b45309; }
+  .p-maqbul { background:#ffedd5; color:#c2410c; }
+
+  .lower { display:grid; grid-template-columns:1.3fr 1fr; gap:22px; margin-top:18px; }
+  .box { border:1px solid #e3d4b3; border-radius:8px; padding:12px 14px; }
+  .box .bt { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#0f766e; margin-bottom:7px; }
+  .catatan { font-size:12px; line-height:1.6; color:#334155; font-style:italic; }
+
+  .kenaikan-box { border:2px solid #16a34a; background:#f0fdf4; border-radius:10px; padding:14px; text-align:center; }
+  .kenaikan-box .lbl { font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase; letter-spacing:.5px; }
+  .kenaikan-box .res { font-size:22px; font-weight:800; color:#15803d; margin:4px 0; }
+  .kenaikan-box .to { font-size:12px; color:#334155; font-weight:600; }
+  .kenaikan-box .sysnote { font-size:10.5px; color:#64748b; margin-top:6px; }
+
+  .signs { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:26px; text-align:center; font-size:12px; }
+  .signs .s .role { color:#64748b; }
+  .signs .s .ln { height:54px; }
+  .signs .s .nm { font-weight:700; text-decoration:underline; }
+  .signs .place { text-align:right; font-size:12px; color:#334155; margin-bottom:4px; grid-column:3; }
+
+  .legend-pred { display:flex; gap:14px; justify-content:center; margin-top:14px; font-size:10px; color:#64748b; flex-wrap:wrap; }
+  .legend-pred span b { color:#1a2433; }
+
+  @media print {
+    .sidebar, .print-bar { display:none !important; }
+    .app, .main { display:block; }
+    .stage, .sheet-area { background:#fff; padding:0; min-height:auto; }
+    .sheet { box-shadow:none; width:100%; min-height:auto; }
+    @page { size:A4; margin:0; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+      <div><div class="name">Raport Online</div><div class="sub">Ponpes Al-Hikmah</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-label">Menu</div>
+      <a href="dashboard-a.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg> Dashboard</a>
+      <a href="siswa.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5S13.9 16 14.5 19"/><path d="M16 5.5a3 3 0 010 5.6M18 19c-.3-2-1-3.3-2.2-4.2"/></svg> Siswa &amp; Kelas <span class="pill">214</span></a>
+      <a href="input-nilai.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 9v11M15 13l1.5 1.5L19 12"/></svg> Input Nilai</a>
+      <a class="active" href="raport.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13H6z"/><path d="M13 3v5h5"/><path d="M9 13h6M9 17h4"/></svg> Cetak Raport</a>
+      <div class="nav-label">Lainnya</div>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v8M8 12h8" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg> Mata Pelajaran</a>
+      <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg> Pengaturan</a>
+    </nav>
+    <div class="foot"><div class="av">OP</div><div class="who"><b>Ustadz Hamid</b><br><span>Operator</span></div></div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+<div class="stage">
+  <!-- toolbar (not printed) -->
+  <div class="print-bar">
+    <a href="index.html" class="pb-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></a>
+    <div>
+      <div class="pb-title">Raport — Aisyah Putri Ramadhani</div>
+      <div class="pb-sub">TPQ · Kelas 3 · UAS Genap 2025/2026</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="pb-seg" title="Periode">
+      <button>UTS</button><button class="on">UAS</button>
+    </div>
+    <button class="pb-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg> Santri Sebelumnya</button>
+    <button class="pb-btn">Berikutnya <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    <button class="pb-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" transform="rotate(45 12 12)"/></svg> Unduh PDF</button>
+    <button class="pb-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4v-6h16v6h-2M8 14h8v7H8z"/></svg> Cetak</button>
+  </div>
+
+  <!-- A4 sheet -->
+  <div class="sheet-area">
+    <div class="sheet">
+      <!-- KOP -->
+      <div class="kop">
+        <div class="seal"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V7l8-4z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></div>
+        <div class="kt">
+          <div class="arab">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</div>
+          <h2>PONDOK PESANTREN AL-HIKMAH</h2>
+          <div class="l1">Taman Pendidikan Al-Qur'an (TPQ)</div>
+          <div class="l2">Jl. KH. Ahmad Dahlan No. 27, Kediri, Jawa Timur · NSPP 411235710089 · Telp. (0354) 771xxx</div>
+        </div>
+      </div>
+
+      <div class="doc-title">
+        <h3>Laporan Hasil Belajar Santri</h3>
+        <div class="sub">Ujian Akhir Semester (UAS) — Semester Genap, Tahun Ajaran 2025/2026</div>
+      </div>
+
+      <!-- IDENTITY -->
+      <div class="ident">
+        <div class="ir"><span class="k">Nama Santri</span><span class="v">Aisyah Putri Ramadhani</span></div>
+        <div class="ir"><span class="k">Kelas</span><span class="v">TPQ Kelas 3</span></div>
+        <div class="ir"><span class="k">NIS</span><span class="v">24302</span></div>
+        <div class="ir"><span class="k">Wali Kelas</span><span class="v">Usth. Maryam Fauziah</span></div>
+        <div class="ir"><span class="k">Tempat/Tgl Lahir</span><span class="v">Kediri, 02 Juni 2017</span></div>
+        <div class="ir"><span class="k">Semester</span><span class="v">Genap (II)</span></div>
+        <div class="ir"><span class="k">Nama Wali</span><span class="v">Bpk. Ridwan Hidayat</span></div>
+        <div class="ir"><span class="k">Tahun Ajaran</span><span class="v">2025 / 2026</span></div>
+      </div>
+
+      <!-- GRADES -->
+      <table class="rapor">
+        <thead>
+          <tr>
+            <th class="c no">No</th>
+            <th>Mata Pelajaran</th>
+            <th class="c">Ujian Praktik</th>
+            <th class="c">Ujian Tertulis</th>
+            <th class="c">Nilai Akhir</th>
+            <th class="c">Predikat</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="no">1</td><td>Tahsin / Tilawah</td><td class="c">94</td><td class="c">92</td><td class="c akhir">93.0</td><td class="c"><span class="pred p-mumtaz">Mumtāz</span></td></tr>
+          <tr><td class="no">2</td><td>Tajwid</td><td class="c">90</td><td class="c">88</td><td class="c akhir">89.0</td><td class="c"><span class="pred p-jayyidj">Jayyid Jiddan</span></td></tr>
+          <tr><td class="no">3</td><td>Tahfidz Juz 30</td><td class="c">95</td><td class="c">93</td><td class="c akhir">94.0</td><td class="c"><span class="pred p-mumtaz">Mumtāz</span></td></tr>
+          <tr><td class="no">4</td><td>Doa &amp; Adab Harian</td><td class="c">92</td><td class="c">90</td><td class="c akhir">91.0</td><td class="c"><span class="pred p-mumtaz">Mumtāz</span></td></tr>
+          <tr><td class="no">5</td><td>Praktik Ibadah</td><td class="c">89</td><td class="c">87</td><td class="c akhir">88.0</td><td class="c"><span class="pred p-jayyidj">Jayyid Jiddan</span></td></tr>
+          <tr><td class="no">6</td><td>Imla' (Menulis Arab)</td><td class="c">91</td><td class="c">90</td><td class="c akhir">90.5</td><td class="c"><span class="pred p-mumtaz">Mumtāz</span></td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" style="text-align:right">Rata-rata Nilai Akhir</td>
+            <td class="c">90.9</td>
+            <td class="c"><span class="pred p-mumtaz">Mumtāz</span></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="legend-pred">
+        <span><b>Mumtāz</b> 90–100</span><span><b>Jayyid Jiddan</b> 80–89</span><span><b>Jayyid</b> 70–79</span><span><b>Maqbūl</b> 60–69</span><span><b>Rāsib</b> &lt; 60</span>
+      </div>
+
+      <!-- LOWER -->
+      <div class="lower">
+        <div>
+          <div class="box" style="margin-bottom:14px">
+            <div class="bt">Catatan Wali Kelas</div>
+            <div class="catatan">Ananda Aisyah menunjukkan perkembangan yang sangat baik, terutama dalam hafalan Juz 30. Bacaan tajwid sudah lancar. Tingkatkan kembali ketelitian dalam menulis Arab. Bārakallāhu fīk.</div>
+          </div>
+          <div class="box">
+            <div class="bt">Rekapitulasi Kehadiran</div>
+            <div class="row" style="gap:24px; font-size:12px; font-weight:700; color:#334155">
+              <span>Sakit: <b style="color:#0f766e">2</b></span>
+              <span>Izin: <b style="color:#0f766e">1</b></span>
+              <span>Alpa: <b style="color:#0f766e">0</b></span>
+              <span>Hadir: <b style="color:#0f766e">96%</b></span>
+            </div>
+          </div>
+        </div>
+        <div class="kenaikan-box">
+          <div class="lbl">Keputusan Kenaikan Kelas</div>
+          <div class="res">NAIK</div>
+          <div class="to">ke <b>TPQ Kelas 4</b></div>
+          <div class="sysnote">✓ Disarankan sistem &amp; dikonfirmasi operator<br>(rata-rata 90.9 · seluruh mapel ≥ KKM)</div>
+        </div>
+      </div>
+
+      <!-- SIGNATURES -->
+      <div class="signs">
+        <div class="s">
+          <div class="role">Orang Tua / Wali</div>
+          <div class="ln"></div>
+          <div class="nm">(........................)</div>
+        </div>
+        <div class="s">
+          <div class="role">Wali Kelas</div>
+          <div class="ln"></div>
+          <div class="nm">Usth. Maryam Fauziah</div>
+        </div>
+        <div class="s">
+          <div class="place">Kediri, 20 Juni 2026</div>
+          <div class="role">Kepala TPQ</div>
+          <div class="ln"></div>
+          <div class="nm">KH. Abdul Wahab, S.Ag.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+</body>
+</html>

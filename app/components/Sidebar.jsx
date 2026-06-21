@@ -96,22 +96,6 @@ export default function Sidebar() {
             <span className="pill" style={{background:'rgba(148,163,184,.15)',color:'var(--muted)',fontSize:9}}>UAS</span>
           </span>
         )}
-        <Link href="/raport" className={active('/raport')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 3h7l5 5v13H6z"/>
-            <path d="M13 3v5h5"/>
-            <path d="M9 13h6M9 17h4"/>
-          </svg>
-          Cetak Raport
-        </Link>
-        <Link href="/raport-v2" className={active('/raport-v2')}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 3h7l5 5v13H6z"/>
-            <path d="M13 3v5h5"/>
-            <path d="M9 13h6M9 17h4"/>
-          </svg>
-          Cetak Raport V2
-        </Link>
         <Link href="/raport-v3" className={active('/raport-v3')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h7l5 5v13H6z"/>
@@ -119,6 +103,15 @@ export default function Sidebar() {
             <path d="M9 13h6M9 17h4"/>
           </svg>
           Cetak Raport V3
+        </Link>
+        <Link href="/raport-v4" className={active('/raport-v4')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="4" width="7" height="7" rx="1"/>
+            <rect x="13" y="4" width="7" height="7" rx="1"/>
+            <rect x="4" y="13" width="7" height="7" rx="1"/>
+            <path d="M13 13h3v3M20 16v4M16 20h1"/>
+          </svg>
+          Cetak Raport V4
         </Link>
         <div className="nav-label">Lainnya</div>
         <Link href="/tahun-ajaran" className={active('/tahun-ajaran')}>

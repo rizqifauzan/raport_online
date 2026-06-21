@@ -848,8 +848,17 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 
 .rv3-signs { display:grid; grid-template-columns:1fr 1fr 1fr; margin-top:10px; text-align:center; font-size: var(--rv3-fs); }
 .rv3-sign-role  { margin-bottom:2px; }
-.rv3-sign-space { height: var(--rv3-sign-h); }
+/* var --rv4-qr-h hanya ada di Raport V4 (default 0px → V3 tidak terpengaruh) */
+.rv3-sign-space { height: max(var(--rv3-sign-h), var(--rv4-qr-h, 0px)); }
 .rv3-sign-name  { font-weight:700; }
+
+/* ── Raport V4: blok tanda tangan + QR (di kolom Wali Kelas) ── */
+/* .rv4-foot menggantikan .rv3-date.push: dorong blok bawah ke ujung halaman */
+.rv4-foot { margin-top:auto; }
+/* QR menggantikan ruang tanda tangan kolom Wali Kelas */
+.rv4-qr-space { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+.rv4-qr-space svg { display:block; width:var(--rv4-qr); height:auto; }
+.rv4-qr-space span { font-size:9px; color:#475569; line-height:1.1; }
 
 /* ── Panel Pengaturan Raport V3 ─────────────────────────── */
 .rv3-settings-overlay {
@@ -877,6 +886,7 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   color:#0d9488; margin:16px 0 8px;
 }
 .rv3-set-group:first-child { margin-top:0; }
+.rv3-set-note { font-size:11px; color:#94a3b8; margin:-2px 0 4px; line-height:1.4; }
 .rv3-set-row { display:block; margin-bottom:12px; }
 .rv3-set-label {
   display:flex; justify-content:space-between; align-items:baseline;
@@ -905,10 +915,37 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 }
 .rv3-set-reset:hover { background:#f1f5f9; }
 
+/* ── Menu dropdown tombol Cetak ─────────────────────────── */
+.rv3-pm-overlay { position:fixed; inset:0; z-index:49; }
+.rv3-pm-dropdown {
+  position:absolute; top:calc(100% + 8px); right:0; z-index:50;
+  background:#fff; border:1px solid #e2e8f0; border-radius:12px;
+  box-shadow:0 12px 34px rgba(15,23,42,.22); padding:6px; min-width:230px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.rv3-pm-dropdown button {
+  display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+  border:0; background:transparent; border-radius:8px; padding:8px 10px;
+  cursor:pointer; text-align:left; color:#0f172a;
+}
+.rv3-pm-dropdown button:hover:not(:disabled) { background:#f0fdfa; }
+.rv3-pm-dropdown button:disabled { opacity:.45; cursor:not-allowed; }
+.rv3-pm-dropdown button b { font-size:13px; font-weight:700; }
+.rv3-pm-dropdown button small { font-size:11px; color:#64748b; }
+
+/* ── Cetak massal (batch) ───────────────────────────────── */
+.rv3-batch { display:none; }   /* tidak pernah tampil di layar */
+
 @media print {
   /* ukuran (width/min-height) di-set dinamis per kertas dari <style> di page.jsx */
   .rv3-sheet { box-shadow: none !important; height: auto !important; }
   .rv3-sheet::before, .rv3-sheet::after { display: none; }
+
+  /* mode cetak massal: sembunyikan preview tunggal + toolbar, tampilkan batch */
+  .rv3-printing .stage { display:none !important; }
+  .rv3-printing .rv3-batch { display:block !important; }
+  .rv3-batch .rv3-sheet { break-after: page; margin:0 auto !important; }
+  .rv3-batch .rv3-sheet:last-child { break-after: auto; }
 }
 
 /* ── Dashboard stat cards ─────────────────────────────── */

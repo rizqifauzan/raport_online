@@ -1,5 +1,6 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
@@ -7,7 +8,7 @@ import { useStore } from '../store';
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-const STORAGE_KEY = 'raport-v3-settings-v3';
+const STORAGE_KEY = 'raport-v4-settings-v1';
 
 // Teks tetap (tidak dapat diubah lewat panel)
 const KOTA = 'Magelang';
@@ -26,8 +27,8 @@ const PAPERS = {
 
 // Default layout per kertas — F4 lebih besar agar tidak banyak ruang kosong di bawah
 const PAPER_DEFAULTS = {
-  A4: { rowsPraktik: 7, rowsKitabah: 9, fontSize: 12.5, rowHeight: 22, padX: 52, padY: 28, signHeight: 56, secGap: 10 },
-  F4: { rowsPraktik: 7, rowsKitabah: 9, fontSize: 13,   rowHeight: 26, padX: 52, padY: 34, signHeight: 96, secGap: 13 },
+  A4: { rowsPraktik: 7, rowsKitabah: 9, fontSize: 12.5, rowHeight: 22, padX: 52, padY: 28, signHeight: 56, secGap: 10, qrSize: 60 },
+  F4: { rowsPraktik: 7, rowsKitabah: 9, fontSize: 13,   rowHeight: 26, padX: 52, padY: 34, signHeight: 96, secGap: 13, qrSize: 76 },
 };
 
 const DEFAULT_SETTINGS = {
@@ -58,7 +59,7 @@ const printStyle = (paper) => `
 `;
 
 // ── Satu lembar raport untuk satu santri ──────────────────────
-function RaportSheet({ student, layout, paper }) {
+function RaportSheet({ student, layout, paper, origin }) {
   const {
     periode, kelas: kelasList, students, ujian, ujianNilai,
     karakter, kenaikan, kenaikanTarget, currentTaLabel,
@@ -71,6 +72,7 @@ function RaportSheet({ student, layout, paper }) {
     '--rv3-pad-y': `${layout.padY}px`,
     '--rv3-sign-h': `${layout.signHeight}px`,
     '--rv3-sec-gap': `${layout.secGap}px`,
+    '--rv4-qr': `${layout.qrSize}px`,
     width: `${paper.screenW}px`,
     minHeight: `${paper.screenH}px`,
   };
@@ -143,6 +145,8 @@ function RaportSheet({ student, layout, paper }) {
     if (kenaikanStatus === 'Naik') return `Naik Ke Kelas ${kenaikanTargetVal ?? kelas?.label ?? '—'}`;
     return `Tetap di Kelas ${kelas?.label ?? '—'}`;
   };
+
+  const qrUrl = `${origin}/raport-v4?santri=${student.id}`;
 
   return (
     <div className="sheet rv3-sheet" style={sheetVars}>
@@ -276,25 +280,30 @@ function RaportSheet({ student, layout, paper }) {
         <div className="rv3-kep-decision">{keputusanText()}</div>
       </div>
 
-      {/* Tanggal & tanda tangan */}
-      <div className="rv3-date push">{tanggalStr}</div>
-      <div className="rv3-date" style={{marginTop:0}}>Mengetahui,</div>
+      {/* Tanggal & tanda tangan (QR di kolom Wali Kelas) */}
+      <div className="rv4-foot">
+        <div className="rv3-date">{tanggalStr}</div>
+        <div className="rv3-date" style={{marginTop:0}}>Mengetahui,</div>
 
-      <div className="rv3-signs">
-        <div className="rv3-sign">
-          <div className="rv3-sign-role">{ROLE_ORTU}</div>
-          <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{student.waliSantri ?? ''}</div>
-        </div>
-        <div className="rv3-sign">
-          <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
-          <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{PIMPINAN}</div>
-        </div>
-        <div className="rv3-sign">
-          <div className="rv3-sign-role">{ROLE_WALI}</div>
-          <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{kelas?.wali ?? ''}</div>
+        <div className="rv3-signs">
+          <div className="rv3-sign">
+            <div className="rv3-sign-role">{ROLE_ORTU}</div>
+            <div className="rv3-sign-space"/>
+            <div className="rv3-sign-name">{student.waliSantri ?? ''}</div>
+          </div>
+          <div className="rv3-sign">
+            <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
+            <div className="rv3-sign-space"/>
+            <div className="rv3-sign-name">{PIMPINAN}</div>
+          </div>
+          <div className="rv3-sign">
+            <div className="rv3-sign-role">{ROLE_WALI}</div>
+            <div className="rv3-sign-space rv4-qr-space">
+              <QRCodeSVG value={qrUrl} size={layout.qrSize} level="M" />
+              <span>Scan raport</span>
+            </div>
+            <div className="rv3-sign-name">{kelas?.wali ?? ''}</div>
+          </div>
         </div>
       </div>
 
@@ -302,7 +311,7 @@ function RaportSheet({ student, layout, paper }) {
   );
 }
 
-export default function RaportV3Page() {
+export default function RaportV4Page() {
   const {
     lembaga, setLembaga, periode, setPeriode,
     students, kelas: kelasList, currentTaLabel,
@@ -310,6 +319,7 @@ export default function RaportV3Page() {
 
   const [activeKelasId, setActiveKelasId] = useState(() => kelasList.find(k => k.lembaga === 'TPQ')?.id ?? '');
   const [activeStudentId, setActiveStudentId] = useState('');
+  const [origin, setOrigin] = useState('');
 
   // ── Pengaturan tampilan (tersimpan di browser) ───────────────
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -329,6 +339,19 @@ export default function RaportV3Page() {
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch { /* abaikan */ }
   }, [settings]);
+
+  // Origin untuk URL QR (hanya tersedia di klien) + preselect santri dari ?santri=
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    const sid = new URLSearchParams(window.location.search).get('santri');
+    if (!sid) return;
+    const s = students.find(x => x.id === sid);
+    if (!s) return;
+    const k = kelasList.find(kk => kk.id === s.kelasId);
+    if (k) setLembaga(k.lembaga);
+    setActiveKelasId(s.kelasId);
+    setActiveStudentId(s.id);
+  }, []);
 
   // Layout aktif = milik kertas yang sedang dipilih (tiap kertas punya setelan sendiri)
   const layout = settings[settings.paper] ?? PAPER_DEFAULTS[settings.paper] ?? PAPER_DEFAULTS.A4;
@@ -473,7 +496,7 @@ export default function RaportV3Page() {
                 Pilih kelas dan santri untuk melihat raport.
               </div>
             ) : (
-              <RaportSheet student={student} layout={layout} paper={paper} />
+              <RaportSheet student={student} layout={layout} paper={paper} origin={origin} />
             )}
           </div>
         </div>
@@ -481,7 +504,7 @@ export default function RaportV3Page() {
         {/* Container cetak massal — tersembunyi di layar, tampil saat print */}
         {printScope && (
           <div className="rv3-batch">
-            {batchStudents.map(s => <RaportSheet key={s.id} student={s} layout={layout} paper={paper} />)}
+            {batchStudents.map(s => <RaportSheet key={s.id} student={s} layout={layout} paper={paper} origin={origin} />)}
           </div>
         )}
       </div>
@@ -522,6 +545,9 @@ export default function RaportV3Page() {
           <RangeField label="Margin Atas/Bawah"  min={16} max={80} step={2}   value={layout.padY}       onChange={v => setField('padY', v)} unit="px" />
           <RangeField label="Jarak Antar Bagian" min={4}  max={40} step={1}   value={layout.secGap}     onChange={v => setField('secGap', v)} unit="px" />
           <RangeField label="Tinggi Kolom TTD"   min={30} max={140} step={2}  value={layout.signHeight} onChange={v => setField('signHeight', v)} unit="px" />
+
+          <div className="rv3-set-group">QR Code</div>
+          <RangeField label="Ukuran QR" min={50} max={140} step={2} value={layout.qrSize} onChange={v => setField('qrSize', v)} unit="px" />
         </div>
 
         <div className="rv3-settings-foot">

@@ -1,11 +1,23 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useStore } from '../store';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      /* abaikan error jaringan, tetap arahkan ke login */
+    }
+    router.replace('/login');
+    router.refresh();
+  }
+
   const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
@@ -176,6 +188,31 @@ export default function Sidebar() {
           <br/>
           <span>Operator</span>
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          title="Keluar"
+          aria-label="Keluar"
+          style={{
+            marginLeft: 'auto',
+            background: 'rgba(255,255,255,.08)',
+            border: '1px solid rgba(255,255,255,.15)',
+            color: '#cdeae4',
+            borderRadius: 8,
+            padding: '6px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <path d="M16 17l5-5-5-5M21 12H9" />
+          </svg>
+          Keluar
+        </button>
       </div>
     </aside>
   );

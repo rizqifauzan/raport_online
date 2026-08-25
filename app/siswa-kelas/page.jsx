@@ -22,7 +22,7 @@ function generateNIS(students) {
 }
 
 export default function SiswaPage() {
-  const { lembaga, setLembaga, students, grades, kelas, addStudent, removeStudent, addClass, updateClass, removeClass } = useStore();
+  const { lembaga, setLembaga, students, grades, kelas, addStudent, removeStudent, addClass, updateClass, removeClass, gurus } = useStore();
   const mapelList = MAPEL[lembaga];
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
@@ -86,29 +86,51 @@ export default function SiswaPage() {
   // Kelas CRUD modal
   const [showKelasModal, setShowKelasModal] = useState(false);
   const [editKelasId, setEditKelasId] = useState(null); // null = tambah
-  const [kelasForm, setKelasForm] = useState({ label:'', nomor:'', wali:'', lembaga: lembaga });
+  const [kelasForm, setKelasForm] = useState({ label:'', nomor:'', wali:'', waliGuruId:'', lembaga: lembaga });
   const [confirmHapusKelasId, setConfirmHapusKelasId] = useState(null);
 
   function openKelasModal(k = null) {
     if (k) {
       setEditKelasId(k.id);
-      setKelasForm({ label: k.label, nomor: k.nomor, wali: k.wali ?? '', lembaga: k.lembaga });
+      setKelasForm({ label: k.label, nomor: k.nomor, wali: k.wali ?? '', waliGuruId: k.waliGuruId ?? '', lembaga: k.lembaga });
     } else {
       setEditKelasId(null);
-      setKelasForm({ label: '', nomor: '', wali: '', lembaga });
+      setKelasForm({ label: '', nomor: '', wali: '', waliGuruId: '', lembaga });
     }
     setShowKelasModal(true);
   }
+
+
+  // Wali kelas boleh diambil dari data guru (agar tanda tangannya otomatis)
+
+  // atau ditulis manual bila gurunya belum terdaftar.
+
+  function waliFields() {
+
+    const guru = kelasForm.waliGuruId
+
+      ? gurus.find(g => g.id === kelasForm.waliGuruId)
+
+      : null;
+
+    return guru
+
+      ? { waliGuruId: guru.id, wali: guru.nama }
+
+      : { waliGuruId: '', wali: kelasForm.wali.trim() };
+
+  }
+
 
   function handleKelasSubmit(e) {
     e.preventDefault();
     if (!kelasForm.label.trim()) return;
     if (editKelasId) {
-      updateClass(editKelasId, { label: kelasForm.label.trim(), nomor: kelasForm.nomor, wali: kelasForm.wali.trim() });
+      updateClass(editKelasId, { label: kelasForm.label.trim(), nomor: kelasForm.nomor, ...waliFields() });
       showToast(`Kelas "${kelasForm.label}" berhasil diperbarui`);
     } else {
       const id = `${kelasForm.lembaga.toLowerCase().replace(' ','-')}-${Date.now()}`;
-      addClass({ id, lembaga: kelasForm.lembaga, label: kelasForm.label.trim(), nomor: kelasForm.nomor, wali: kelasForm.wali.trim() });
+      addClass({ id, lembaga: kelasForm.lembaga, label: kelasForm.label.trim(), nomor: kelasForm.nomor, ...waliFields() });
       showToast(`Kelas "${kelasForm.label}" berhasil ditambahkan`);
     }
     setShowKelasModal(false);
@@ -420,8 +442,15 @@ export default function SiswaPage() {
               </div>
               <div className="form-row-2">
                 <div className="form-row">
-                  <label>Wali Kelas</label>
-                  <input className="form-input" placeholder="Nama ustadz/ustadzah..." value={kelasForm.wali} onChange={e => setKelasForm(f=>({...f,wali:e.target.value}))}/>
+                  <label>Wali Kelas <span className="muted" style={{fontWeight:500}}>(opsional)</span></label>
+                  <select
+                    className="form-input"
+                    value={kelasForm.waliGuruId}
+                    onChange={e => setKelasForm(f => ({...f, waliGuruId: e.target.value}))}
+                  >
+                    <option value="">— Pilih dari data guru —</option>
+                    {gurus.map(g => <option key={g.id} value={g.id}>{g.nama}</option>)}
+                  </select>
                 </div>
                 {!editKelasId && (
                   <div className="form-row">
@@ -433,6 +462,20 @@ export default function SiswaPage() {
                   </div>
                 )}
               </div>
+              {!kelasForm.waliGuruId && (
+                <div className="form-row">
+                  <label>Nama Wali Kelas <span className="muted" style={{fontWeight:500}}>(bila belum terdaftar sebagai guru)</span></label>
+                  <input
+                    className="form-input"
+                    placeholder="Nama ustadz/ustadzah..."
+                    value={kelasForm.wali}
+                    onChange={e => setKelasForm(f => ({...f, wali: e.target.value}))}
+                  />
+                </div>
+              )}
+              <p className="muted" style={{fontSize:12,margin:'2px 0 14px',lineHeight:1.55}}>
+                Memilih guru membuat tanda tangannya tercetak otomatis di raport kelas ini.
+              </p>
               <div className="form-actions">
                 <button type="button" className="btn ghost" onClick={() => setShowKelasModal(false)}>Batal</button>
                 <button type="submit" className="btn primary">{editKelasId ? 'Simpan Perubahan' : 'Tambah Kelas'}</button>

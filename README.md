@@ -116,13 +116,21 @@ tanda tangan di raport — jadi hasilnya terlihat sebelum dicetak. Kalibrasi ini
 pada gurunya, bukan pada template, sehingga sekali disetel akan ikut ke semua raport
 kelas yang diampu.
 
-### Cara tanda tangan dicocokkan ke kelas
+### Menetapkan wali kelas
 
-1. **Penetapan eksplisit** — guru yang kelasnya dicentang pada form (`kelasIds`).
-2. **Pencocokan nama** — bila belum ditetapkan, nama guru dicocokkan dengan nama wali
-   kelas pada data kelas.
+Penetapan wali kelas tersimpan pada **data kelas** (`kelas.waliGuruId`) — satu sumber,
+sehingga tidak ada dua tempat yang bisa saling bertentangan. Bisa diatur dari dua arah:
 
-Urutan ini membuat data kelas yang sudah ada tetap bekerja tanpa perlu diatur ulang.
+- **Halaman Siswa & Kelas** — saat membuat atau mengubah kelas, ada pilihan *opsional*
+  memilih guru sebagai wali kelas. Bila gurunya belum terdaftar, nama wali tetap bisa
+  ditulis manual seperti sebelumnya.
+- **Halaman Guru** — mencentang kelas yang diampu seorang guru menulis penetapan yang
+  sama. Kelas yang sudah dipegang guru lain ditandai; mencentangnya akan memindahkan
+  wali kelas tersebut.
+
+Satu kelas hanya punya satu wali. Saat mencetak, guru dicari lewat `waliGuruId`; bila
+kelas hanya punya nama wali berupa teks, namanya dicocokkan dengan data guru — sehingga
+kelas lama tetap bekerja tanpa perlu diatur ulang.
 
 ### Catatan penyimpanan
 

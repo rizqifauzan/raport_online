@@ -1274,3 +1274,8 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   transform-origin: top center;
   pointer-events: none;
 }
+.ttd-kelas-chip > span { display: block; line-height: 1.35; }
+.ttd-kelas-taken {
+  display: block; font-style: normal; font-size: 10.5px;
+  font-weight: 600; color: var(--muted-2); margin-top: 1px;
+}

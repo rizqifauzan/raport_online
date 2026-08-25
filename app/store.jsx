@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus } from '../lib/data';
+import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus, migrateWaliKelas } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -88,7 +88,8 @@ export function StoreProvider({ children }) {
           const d = payload.data;
           setStudents(d.students ?? INITIAL_DATA.students);
           setGrades(d.grades ?? INITIAL_DATA.grades);
-          setKelas(d.kelas ?? INITIAL_DATA.kelas);
+          // Penetapan wali kelas lama (guru.kelasIds) dipindah ke data kelas
+          setKelas(migrateWaliKelas(d.kelas ?? INITIAL_DATA.kelas, d.gurus ?? []));
           setUjian(d.ujian ?? INITIAL_DATA.ujian);
           setUjianNilai(d.ujianNilai ?? INITIAL_DATA.ujianNilai);
           setKarakter(d.karakter ?? INITIAL_DATA.karakter);
@@ -293,15 +294,33 @@ export function StoreProvider({ children }) {
     return users.some(x => x.username.toLowerCase() === u && x.id !== exceptId);
   }
 
+  /**
+   * Tetapkan (atau lepas) guru sebagai wali kelas.
+   * Data kelas adalah satu-satunya sumber penetapan ini; nama wali ikut
+   * disalin agar raport dan tabel tetap terbaca bila gurunya kelak dihapus.
+   */
+  function setWaliKelas(kelasId, guruId) {
+    if (snap) return;
+    const guru = guruId ? gurus.find(g => g.id === guruId) : null;
+    setKelas(prev => prev.map(k => k.id === kelasId
+      ? { ...k, waliGuruId: guru ? guru.id : '', wali: guru ? guru.nama : k.wali }
+      : k));
+  }
+
   // Guru
   function addGuru(guru) {
     setGurus(prev => [...prev, guru]);
   }
   function updateGuru(id, patch) {
     setGurus(prev => prev.map(g => g.id === id ? { ...g, ...patch } : g));
+    if (patch.nama) {
+      setKelas(prev => prev.map(k => k.waliGuruId === id ? { ...k, wali: patch.nama } : k));
+    }
   }
   async function removeGuru(id) {
     setGurus(prev => prev.filter(g => g.id !== id));
+    // Lepas dari kelas yang diampunya; nama wali dibiarkan sebagai teks
+    setKelas(prev => prev.map(k => k.waliGuruId === id ? { ...k, waliGuruId: '' } : k));
     await removeSignature(id);
   }
 
@@ -391,6 +410,7 @@ export function StoreProvider({ children }) {
       // Guru & tanda tangan
       gurus,
       addGuru, updateGuru, removeGuru,
+      setWaliKelas,
       signatures,
       setSignature, removeSignature,
 

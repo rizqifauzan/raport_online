@@ -294,19 +294,6 @@ export function StoreProvider({ children }) {
     return users.some(x => x.username.toLowerCase() === u && x.id !== exceptId);
   }
 
-  /**
-   * Tetapkan (atau lepas) guru sebagai wali kelas.
-   * Data kelas adalah satu-satunya sumber penetapan ini; nama wali ikut
-   * disalin agar raport dan tabel tetap terbaca bila gurunya kelak dihapus.
-   */
-  function setWaliKelas(kelasId, guruId) {
-    if (snap) return;
-    const guru = guruId ? gurus.find(g => g.id === guruId) : null;
-    setKelas(prev => prev.map(k => k.id === kelasId
-      ? { ...k, waliGuruId: guru ? guru.id : '', wali: guru ? guru.nama : k.wali }
-      : k));
-  }
-
   // Guru
   function addGuru(guru) {
     setGurus(prev => [...prev, guru]);
@@ -410,7 +397,6 @@ export function StoreProvider({ children }) {
       // Guru & tanda tangan
       gurus,
       addGuru, updateGuru, removeGuru,
-      setWaliKelas,
       signatures,
       setSignature, removeSignature,
 

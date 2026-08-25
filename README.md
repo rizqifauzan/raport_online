@@ -118,15 +118,14 @@ kelas yang diampu.
 
 ### Menetapkan wali kelas
 
-Penetapan wali kelas tersimpan pada **data kelas** (`kelas.waliGuruId`) — satu sumber,
-sehingga tidak ada dua tempat yang bisa saling bertentangan. Bisa diatur dari dua arah:
+Penetapan wali kelas tersimpan pada **data kelas** (`kelas.waliGuruId`) dan diatur
+**hanya dari halaman Siswa & Kelas** — saat membuat atau mengubah kelas ada pilihan
+*opsional* memilih guru sebagai wali kelas. Bila gurunya belum terdaftar, nama wali
+tetap bisa ditulis manual seperti sebelumnya.
 
-- **Halaman Siswa & Kelas** — saat membuat atau mengubah kelas, ada pilihan *opsional*
-  memilih guru sebagai wali kelas. Bila gurunya belum terdaftar, nama wali tetap bisa
-  ditulis manual seperti sebelumnya.
-- **Halaman Guru** — mencentang kelas yang diampu seorang guru menulis penetapan yang
-  sama. Kelas yang sudah dipegang guru lain ditandai; mencentangnya akan memindahkan
-  wali kelas tersebut.
+Halaman Guru **tidak** menetapkan wali kelas; kolom *Kelas Diampu* di sana hanya
+menampilkan hasilnya. Satu pintu masuk begini mencegah dua halaman menulis fakta yang
+sama dan saling bertentangan.
 
 Satu kelas hanya punya satu wali. Saat mencetak, guru dicari lewat `waliGuruId`; bila
 kelas hanya punya nama wali berupa teks, namanya dicocokkan dengan data guru — sehingga

@@ -67,14 +67,13 @@ function TtdPreview({ image, ttd, nama }) {
 export default function GuruPage() {
   const {
     gurus, kelas, signatures,
-    addGuru, updateGuru, removeGuru, setSignature, removeSignature, setWaliKelas,
+    addGuru, updateGuru, removeGuru, setSignature, removeSignature,
   } = useStore();
 
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ nama: '', kelasIds: [], ttd: { ...TTD_DEFAULT } });
-  // kelasIds di form hanyalah cerminan data kelas; sumbernya tetap kelas.waliGuruId
+  const [form, setForm] = useState({ nama: '', ttd: { ...TTD_DEFAULT } });
   const [draftImage, setDraftImage] = useState(null); // gambar dalam modal (belum tentu tersimpan)
   const [formError, setFormError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -105,7 +104,7 @@ export default function GuruPage() {
 
   function openAdd() {
     setEditId(null);
-    setForm({ nama: '', kelasIds: [], ttd: { ...TTD_DEFAULT } });
+    setForm({ nama: '', ttd: { ...TTD_DEFAULT } });
     setDraftImage(null);
     setFormError('');
     setShowModal(true);
@@ -113,7 +112,7 @@ export default function GuruPage() {
 
   function openEdit(g) {
     setEditId(g.id);
-    setForm({ nama: g.nama, kelasIds: kelasDiampu(g.id).map(k => k.id), ttd: { ...TTD_DEFAULT, ...g.ttd } });
+    setForm({ nama: g.nama, ttd: { ...TTD_DEFAULT, ...g.ttd } });
     setDraftImage(signatures[g.id] ?? null);
     setFormError('');
     setShowModal(true);
@@ -142,15 +141,6 @@ export default function GuruPage() {
     setForm(f => ({ ...f, ttd: { ...f.ttd, ...patch } }));
   }
 
-  function toggleKelas(id) {
-    setForm(f => ({
-      ...f,
-      kelasIds: f.kelasIds.includes(id)
-        ? f.kelasIds.filter(k => k !== id)
-        : [...f.kelasIds, id],
-    }));
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     const nama = form.nama.trim();
@@ -163,11 +153,6 @@ export default function GuruPage() {
 
       if (editId) updateGuru(editId, payload);
       else addGuru({ id, ...payload, color: COLORS[gurus.length % COLORS.length] });
-
-      // Penetapan wali kelas ditulis ke data kelas
-      const sebelumnya = editId ? kelasDiampu(editId).map(k => k.id) : [];
-      sebelumnya.filter(kid => !form.kelasIds.includes(kid)).forEach(kid => setWaliKelas(kid, null));
-      form.kelasIds.filter(kid => !sebelumnya.includes(kid)).forEach(kid => setWaliKelas(kid, id));
 
       // Gambar disimpan lewat jalurnya sendiri
       const tersimpan = signatures[id] ?? null;
@@ -296,10 +281,9 @@ export default function GuruPage() {
           </div>
 
           <p className="muted" style={{fontSize:12.5,marginTop:14,lineHeight:1.6}}>
-            Penetapan wali kelas tersimpan pada data kelas — bisa diatur dari sini maupun
-            dari halaman <b>Siswa &amp; Kelas</b> saat membuat atau mengubah kelas. Satu kelas
-            hanya punya satu wali; mencentang kelas yang sudah dipegang guru lain akan
-            memindahkannya.
+            Kolom <b>Kelas Diampu</b> hanya menampilkan hasil penetapan; wali kelas diatur
+            dari halaman <b>Siswa &amp; Kelas</b> saat membuat atau mengubah kelas. Saat
+            mencetak raport, tanda tangan guru yang menjadi wali kelas dipakai otomatis.
           </p>
         </div>
       </div>
@@ -323,27 +307,20 @@ export default function GuruPage() {
               </div>
 
               <div className="form-row">
-                <label className="form-label">Kelas Diampu <span className="muted" style={{fontWeight:500}}>(boleh lebih dari satu)</span></label>
-                <div className="ttd-kelas-grid">
-                  {kelasOptions.map(k => {
-                    const lain = k.waliGuruId && k.waliGuruId !== editId
-                      ? gurus.find(g => g.id === k.waliGuruId)
-                      : null;
-                    return (
-                      <label
-                        key={k.id}
-                        className={`ttd-kelas-chip${form.kelasIds.includes(k.id) ? ' on' : ''}`}
-                        title={lain ? `Saat ini wali kelasnya ${lain.nama}` : undefined}
-                      >
-                        <input type="checkbox" checked={form.kelasIds.includes(k.id)} onChange={() => toggleKelas(k.id)}/>
-                        <span>
-                          {k.lembaga} · {k.label}
-                          {lain && <em className="ttd-kelas-taken">{lain.nama}</em>}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
+                <label className="form-label">Kelas Diampu</label>
+                {editId && kelasDiampu(editId).length ? (
+                  <div className="row" style={{gap:5,flexWrap:'wrap'}}>
+                    {kelasDiampu(editId).map(k => (
+                      <span key={k.id} className="badge b-teal">{k.lembaga} · {k.label}</span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="muted" style={{fontSize:13}}>Belum menjadi wali kelas mana pun</span>
+                )}
+                <span className="muted" style={{fontSize:11.5,marginTop:6,display:'block',lineHeight:1.55}}>
+                  Wali kelas ditetapkan dari halaman <b>Siswa &amp; Kelas</b> saat membuat
+                  atau mengubah kelas.
+                </span>
               </div>
 
               <div className="ttd-editor">

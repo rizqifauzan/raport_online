@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
+import { findWaliKelasGuru } from '../../lib/data';
 
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -14,6 +15,20 @@ const KOTA = 'Magelang';
 const PIMPINAN = 'Muhlisun S.Th, I.';
 const JUDUL_PRAKTIK = 'UJIAN PRAKTIK';
 const JUDUL_KITABAH = 'UJIAN KITABAH';
+/** Tanda tangan wali kelas, diposisikan sesuai kalibrasi tiap guru. */
+function TtdWali({ guru, image }) {
+  if (!guru || !image) return null;
+  const ttd = guru.ttd ?? { x: 0, y: 0, scale: 100 };
+  return (
+    <img
+      className="rv3-sign-img"
+      src={image}
+      alt=""
+      style={{ transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})` }}
+    />
+  );
+}
+
 const ROLE_ORTU = 'Orang Tua / Wali Santri';
 const ROLE_PIMPINAN = 'Pimpinan Pesantren';
 const ROLE_WALI = 'Wali Kelas';
@@ -62,6 +77,7 @@ function RaportSheet({ student, layout, paper }) {
   const {
     periode, kelas: kelasList, students, ujian, ujianNilai,
     karakter, kenaikan, kenaikanTarget, currentTaLabel,
+    gurus, signatures,
   } = useStore();
 
   const sheetVars = {
@@ -76,6 +92,10 @@ function RaportSheet({ student, layout, paper }) {
   };
 
   const kelas = kelasList.find(k => k.id === student.kelasId) ?? null;
+
+  // Tanda tangan wali kelas diambil otomatis dari data guru
+  const guruWali = findWaliKelasGuru(gurus, kelas);
+  const ttdWali = guruWali ? signatures[guruWali.id] : null;
 
   const kelasSiswa = useMemo(
     () => students.filter(s => s.kelasId === student.kelasId && s.status !== 'Lulus'),
@@ -293,8 +313,10 @@ function RaportSheet({ student, layout, paper }) {
         </div>
         <div className="rv3-sign">
           <div className="rv3-sign-role">{ROLE_WALI}</div>
-          <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{kelas?.wali ?? ''}</div>
+          <div className="rv3-sign-space">
+            <TtdWali guru={guruWali} image={ttdWali}/>
+          </div>
+          <div className="rv3-sign-name">{guruWali?.nama ?? kelas?.wali ?? ''}</div>
         </div>
       </div>
 

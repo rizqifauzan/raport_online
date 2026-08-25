@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { INITIAL_DATA, HISTORY_SEED, normalizeUsers } from '../lib/data';
+import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -21,6 +21,11 @@ export function StoreProvider({ children }) {
 
   // Pengguna aplikasi (operator/ustadz/wali kelas)
   const [users, setUsers] = useState(INITIAL_DATA.users);
+
+  // Guru + kalibrasi posisi tanda tangannya (gambar disimpan terpisah)
+  const [gurus, setGurus] = useState(INITIAL_DATA.gurus);
+  // { guruId: dataUrl } — TIDAK ikut dokumen state, lihat /api/signature
+  const [signatures, setSignatures] = useState({});
 
   // locks[kelasId][periode] = true
   const [locks, setLocks] = useState({});
@@ -51,7 +56,7 @@ export function StoreProvider({ children }) {
   // sengaja dikecualikan — itu preferensi tampilan, bukan data.
   const persisted = {
     students, grades, kelas, ujian, ujianNilai, karakter,
-    kenaikan, kenaikanTarget, locks, history, currentTaLabel, users,
+    kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus,
   };
 
   // Hidrasi awal: tanyakan mode ke server, lalu muat data bila mode database.
@@ -91,6 +96,7 @@ export function StoreProvider({ children }) {
           setKenaikanTargetState(d.kenaikanTarget ?? {});
           // normalizeUsers memetakan peran lama (wali-kelas/ustadz) ke 'operator'
           setUsers(d.users ? normalizeUsers(d.users) : INITIAL_DATA.users);
+          setGurus(d.gurus ? normalizeGurus(d.gurus) : INITIAL_DATA.gurus);
           setLocks(d.locks ?? {});
           setHistory(d.history ?? HISTORY_SEED);
           setCurrentTaLabel(d.currentTaLabel ?? '2025/2026');
@@ -110,6 +116,23 @@ export function StoreProvider({ children }) {
 
     return () => { cancelled = true; };
   }, []);
+
+  // Gambar tanda tangan dimuat terpisah — ukurannya besar dan jarang berubah,
+  // jadi tidak ikut dalam dokumen state.
+  useEffect(() => {
+    if (dbEnabled !== true) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/signature', { cache: 'no-store' });
+        const payload = await res.json();
+        if (!cancelled && payload.signatures) setSignatures(payload.signatures);
+      } catch (err) {
+        console.error('[store] gagal memuat tanda tangan:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [dbEnabled]);
 
   // Simpan setiap perubahan ke database (hanya bila mode database aktif).
   useEffect(() => {
@@ -137,7 +160,7 @@ export function StoreProvider({ children }) {
     return () => clearTimeout(saveTimerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbEnabled, students, grades, kelas, ujian, ujianNilai, karakter,
-      kenaikan, kenaikanTarget, locks, history, currentTaLabel, users]);
+      kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus]);
 
   function isLocked(kelasId, p) {
     return locks[kelasId]?.[p] === true;
@@ -270,6 +293,53 @@ export function StoreProvider({ children }) {
     return users.some(x => x.username.toLowerCase() === u && x.id !== exceptId);
   }
 
+  // Guru
+  function addGuru(guru) {
+    setGurus(prev => [...prev, guru]);
+  }
+  function updateGuru(id, patch) {
+    setGurus(prev => prev.map(g => g.id === id ? { ...g, ...patch } : g));
+  }
+  async function removeGuru(id) {
+    setGurus(prev => prev.filter(g => g.id !== id));
+    await removeSignature(id);
+  }
+
+  /** Simpan gambar tanda tangan (data URL). Langsung dikirim, tanpa debounce. */
+  async function setSignature(guruId, dataUrl) {
+    setSignatures(prev => ({ ...prev, [guruId]: dataUrl }));
+    if (dbEnabled !== true) return { ok: true };
+    try {
+      const res = await fetch('/api/signature', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guruId, image: dataUrl }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        return { ok: false, error: payload.error ?? 'Gagal menyimpan tanda tangan.' };
+      }
+      return { ok: true };
+    } catch (err) {
+      console.error('[store] gagal menyimpan tanda tangan:', err);
+      return { ok: false, error: 'Gagal menghubungi server.' };
+    }
+  }
+
+  async function removeSignature(guruId) {
+    setSignatures(prev => {
+      const next = { ...prev };
+      delete next[guruId];
+      return next;
+    });
+    if (dbEnabled !== true) return;
+    try {
+      await fetch(`/api/signature?guruId=${encodeURIComponent(guruId)}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('[store] gagal menghapus tanda tangan:', err);
+    }
+  }
+
   // Tahun ajaran
   function archiveCurrentTa(newTaLabel) {
     const snapshot = {
@@ -317,6 +387,12 @@ export function StoreProvider({ children }) {
       lockKelas,
       unlockKelas,
       isLocked,
+
+      // Guru & tanda tangan
+      gurus,
+      addGuru, updateGuru, removeGuru,
+      signatures,
+      setSignature, removeSignature,
 
       // Pengguna
       users,

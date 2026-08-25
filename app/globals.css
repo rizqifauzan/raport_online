@@ -1203,3 +1203,74 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .db-badge.is-demo  { color: #e2c896; }
 .db-badge.is-error { color: #fca5a5; }
 .db-badge.is-idle  { color: #7fa8a1; }
+
+/* ---------- Guru & tanda tangan ---------- */
+.ttd-thumb {
+  height: 44px; max-width: 170px; object-fit: contain; display: block;
+  background: repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+  border: 1px solid var(--line-2); border-radius: var(--r-sm); padding: 3px;
+}
+
+.ttd-kelas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.ttd-kelas-chip {
+  display: flex; align-items: center; gap: 7px; cursor: pointer;
+  padding: 7px 10px; border: 1px solid var(--line); border-radius: var(--r-sm);
+  font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+  transition: border-color .15s, background .15s, color .15s;
+}
+.ttd-kelas-chip input { accent-color: var(--brand); margin: 0; }
+.ttd-kelas-chip.on { border-color: var(--brand); background: var(--brand-tint); color: var(--brand-700); }
+
+.ttd-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+.ttd-drop {
+  height: 108px; display: grid; place-items: center; padding: 8px;
+  border: 1.5px dashed var(--line); border-radius: var(--r);
+  background: repeating-conic-gradient(#f1f5f9 0% 25%, #fff 0% 50%) 50% / 14px 14px;
+}
+.ttd-drop img { max-height: 100%; max-width: 100%; object-fit: contain; }
+
+/* Pratinjau kotak tanda tangan sebagaimana tampil di raport */
+.ttd-preview {
+  border: 1px solid var(--line); border-radius: var(--r);
+  padding: 10px 12px; text-align: center; background: #fff;
+  font-size: 11.5px; color: var(--ink-2);
+}
+.ttd-preview-role { margin-bottom: 2px; }
+.ttd-preview-box { position: relative; height: 62px; overflow: hidden; }
+.ttd-preview-box img {
+  position: absolute; left: 50%; top: 0;
+  max-height: 100%; max-width: 150%; transform-origin: top center;
+}
+.ttd-preview-guide {
+  position: absolute; left: 12%; right: 12%; bottom: 0;
+  border-bottom: 1px dashed var(--line);
+}
+.ttd-preview-empty {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--muted-2); font-size: 11px;
+}
+.ttd-preview-name { font-weight: 700; color: var(--ink); }
+
+.ttd-sliders { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.ttd-sliders label { display: block; }
+.ttd-sliders span {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 11.5px; font-weight: 700; color: var(--muted); margin-bottom: 3px;
+}
+.ttd-sliders b { color: var(--brand-700); font-variant-numeric: tabular-nums; }
+.ttd-sliders input[type=range] { width: 100%; accent-color: var(--brand); }
+
+@media (max-width: 620px) {
+  .ttd-editor { grid-template-columns: 1fr; }
+  .ttd-kelas-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Tanda tangan tercetak di dalam kotak TTD raport */
+.rv3-sign-space { position: relative; }
+.rv3-sign-img {
+  position: absolute; left: 50%; top: 0;
+  max-height: 100%; max-width: 160%;
+  transform-origin: top center;
+  pointer-events: none;
+}

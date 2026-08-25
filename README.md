@@ -13,6 +13,7 @@ Sistem Raport Online (mockup hi-fi) untuk pesantren — mengelola **TPQ** & **Ma
 | `/input-nilai` | Input nilai 1 kelas (Praktik/Tertulis, rata-rata otomatis) |
 | `/raport` | Preview & cetak raport per santri (A4) |
 | `/pengguna` | Manajemen pengguna: tambah, edit, hapus, atur peran |
+| `/guru` | Data guru + tanda tangan dan kalibrasi posisinya |
 
 ## Mode data: demo vs database
 
@@ -90,6 +91,50 @@ bila `DATABASE_URL` di-set, atau hanya di memori bila tidak.
 > `/api/state` saat ini belum terproteksi: siapa pun yang bisa membuka aplikasi juga
 > bisa membaca seluruh isi state. Sebelum menyimpan kredensial apa pun, endpoint itu
 > perlu diberi autentikasi lebih dulu dan password disimpan sebagai hash.
+
+## Guru & tanda tangan otomatis
+
+Halaman `/guru` menyimpan data guru (`id`, nama, kelas yang diampu) beserta **gambar
+tanda tangan** dan **kalibrasi posisinya**. Saat raport dicetak, tanda tangan wali
+kelas muncul sendiri — tidak perlu ditempel manual per santri.
+
+### Kenapa posisi dikalibrasi per guru
+
+Hasil pindaian tanda tangan tidak pernah seragam: ada yang goresannya besar, ada yang
+miring, ada yang menyisakan banyak ruang kosong di satu sisi. Kalau semuanya dipasang
+dengan posisi sama, sebagian akan menabrak nama atau menggantung terlalu tinggi. Karena
+itu tiap guru punya tiga angka penyetel sendiri, tersimpan bersama datanya:
+
+| Field | Arti | Rentang |
+|---|---|---|
+| `ttd.x` | geser mendatar (px) | −40 … +40 |
+| `ttd.y` | geser tegak (px) | −30 … +30 |
+| `ttd.scale` | ukuran tampil (%) | 40 … 160 |
+
+Penyetelannya lewat slider, dengan pratinjau yang bentuknya sama persis dengan kotak
+tanda tangan di raport — jadi hasilnya terlihat sebelum dicetak. Kalibrasi ini menempel
+pada gurunya, bukan pada template, sehingga sekali disetel akan ikut ke semua raport
+kelas yang diampu.
+
+### Cara tanda tangan dicocokkan ke kelas
+
+1. **Penetapan eksplisit** — guru yang kelasnya dicentang pada form (`kelasIds`).
+2. **Pencocokan nama** — bila belum ditetapkan, nama guru dicocokkan dengan nama wali
+   kelas pada data kelas.
+
+Urutan ini membuat data kelas yang sudah ada tetap bekerja tanpa perlu diatur ulang.
+
+### Catatan penyimpanan
+
+Gambar tanda tangan **tidak** disimpan di dalam dokumen state, melainkan di tabel
+terpisah `guru_ttd` lewat endpoint `/api/signature`. Alasannya: dokumen state dikirim
+ulang seluruhnya setiap kali ada perubahan (termasuk saat mengetik nilai), sedangkan
+gambar berukuran besar dan jarang berubah — mencampurnya akan memperlambat setiap
+penyimpanan. Sebelum diunggah, gambar dikecilkan di browser ke maksimal 600×260 px
+dan disimpan sebagai PNG agar latar transparannya tetap utuh.
+
+Gunakan **PNG dengan latar transparan** untuk hasil paling rapi. Foto JPG tetap bisa,
+tetapi latar putihnya akan menutupi garis di raport.
 
 ## Menjalankan secara lokal
 

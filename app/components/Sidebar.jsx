@@ -6,7 +6,7 @@ import { useStore } from '../store';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus, users } = useStore();
+  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus, users, gurus } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
 
@@ -141,6 +141,15 @@ export default function Sidebar() {
           </svg>
           Tahun Ajaran
           {history.length > 0 && <span className="pill">{history.length}</span>}
+        </Link>
+        <Link href="/guru" className={active('/guru')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 17c2.5-3 6-3 8.5 0"/>
+            <path d="M13 15.5c2-3.5 4.5-6.5 7.5-9.5"/>
+            <path d="M17 20h4"/>
+          </svg>
+          Guru &amp; TTD
+          <span className="pill">{gurus.length}</span>
         </Link>
         <Link href="/pengguna" className={active('/pengguna')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

@@ -19,6 +19,9 @@ export function StoreProvider({ children }) {
   const [kenaikan, setKenaikan] = useState(INITIAL_DATA.kenaikan);
   const [kenaikanTarget, setKenaikanTargetState] = useState({});
 
+  // Pengguna aplikasi (operator/ustadz/wali kelas)
+  const [users, setUsers] = useState(INITIAL_DATA.users);
+
   // locks[kelasId][periode] = true
   const [locks, setLocks] = useState({});
 
@@ -48,7 +51,7 @@ export function StoreProvider({ children }) {
   // sengaja dikecualikan — itu preferensi tampilan, bukan data.
   const persisted = {
     students, grades, kelas, ujian, ujianNilai, karakter,
-    kenaikan, kenaikanTarget, locks, history, currentTaLabel,
+    kenaikan, kenaikanTarget, locks, history, currentTaLabel, users,
   };
 
   // Hidrasi awal: tanyakan mode ke server, lalu muat data bila mode database.
@@ -86,6 +89,7 @@ export function StoreProvider({ children }) {
           setKarakter(d.karakter ?? INITIAL_DATA.karakter);
           setKenaikan(d.kenaikan ?? INITIAL_DATA.kenaikan);
           setKenaikanTargetState(d.kenaikanTarget ?? {});
+          setUsers(d.users ?? INITIAL_DATA.users);
           setLocks(d.locks ?? {});
           setHistory(d.history ?? HISTORY_SEED);
           setCurrentTaLabel(d.currentTaLabel ?? '2025/2026');
@@ -132,7 +136,7 @@ export function StoreProvider({ children }) {
     return () => clearTimeout(saveTimerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbEnabled, students, grades, kelas, ujian, ujianNilai, karakter,
-      kenaikan, kenaikanTarget, locks, history, currentTaLabel]);
+      kenaikan, kenaikanTarget, locks, history, currentTaLabel, users]);
 
   function isLocked(kelasId, p) {
     return locks[kelasId]?.[p] === true;
@@ -249,6 +253,22 @@ export function StoreProvider({ children }) {
     setKenaikanTargetState({});
   }
 
+  // Pengguna — tidak terpengaruh mode arsip (pengguna berlaku lintas tahun ajaran)
+  function addUser(user) {
+    setUsers(prev => [...prev, user]);
+  }
+  function updateUser(id, patch) {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...patch } : u));
+  }
+  function removeUser(id) {
+    setUsers(prev => prev.filter(u => u.id !== id));
+  }
+  /** Cek username unik; `exceptId` dipakai saat mengedit pengguna yang sama. */
+  function isUsernameTaken(username, exceptId = null) {
+    const u = username.trim().toLowerCase();
+    return users.some(x => x.username.toLowerCase() === u && x.id !== exceptId);
+  }
+
   // Tahun ajaran
   function archiveCurrentTa(newTaLabel) {
     const snapshot = {
@@ -296,6 +316,10 @@ export function StoreProvider({ children }) {
       lockKelas,
       unlockKelas,
       isLocked,
+
+      // Pengguna
+      users,
+      addUser, updateUser, removeUser, isUsernameTaken,
 
       // Mutations
       addStudent, removeStudent, updateStudent,

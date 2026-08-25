@@ -12,6 +12,7 @@ Sistem Raport Online (mockup hi-fi) untuk pesantren — mengelola **TPQ** & **Ma
 | `/siswa` | Manajemen siswa & kelas |
 | `/input-nilai` | Input nilai 1 kelas (Praktik/Tertulis, rata-rata otomatis) |
 | `/raport` | Preview & cetak raport per santri (A4) |
+| `/pengguna` | Manajemen pengguna: tambah, edit, hapus, atur peran |
 
 ## Mode data: demo vs database
 
@@ -64,6 +65,33 @@ butuh query relasional (laporan lintas tahun, akses banyak operator sekaligus),
 skema ini bisa dinormalisasi ke tabel per-entitas tanpa mengubah antarmuka store.
 
 Set `APP_TENANT_ID` bila satu database dipakai beberapa pesantren.
+
+## Manajemen pengguna
+
+Halaman `/pengguna` mengelola siapa saja yang punya akses aplikasi, lengkap dengan
+peran masing-masing:
+
+| Peran | Cakupan |
+|---|---|
+| **Admin** | Akses penuh, termasuk kelola pengguna & tahun ajaran |
+| **Operator** | Kelola santri, kelas, dan cetak raport |
+| **Wali Kelas** | Input nilai & akhlaq untuk kelas yang diampu |
+| **Ustadz** | Input nilai mata pelajaran yang diajar |
+
+Fitur: tambah/edit/hapus pengguna, filter per peran, pencarian nama/username/email,
+serta penetapan kelas untuk peran Wali Kelas dan Ustadz. Dua pengaman ikut dipasang —
+username wajib unik, dan admin aktif terakhir tidak bisa dihapus atau diturunkan
+perannya supaya aplikasi tidak pernah kehilangan admin.
+
+Seperti data lain, daftar pengguna ikut mode penyimpanan: tersimpan permanen di Neon
+bila `DATABASE_URL` di-set, atau hanya di memori bila tidak.
+
+> **Catatan keamanan.** Modul ini mengelola *daftar pengguna dan perannya*, bukan
+> autentikasi — aplikasi belum punya halaman login dan peran belum menjadi pembatas
+> akses yang sesungguhnya. Password sengaja **tidak** disimpan, karena endpoint
+> `/api/state` saat ini belum terproteksi: siapa pun yang bisa membuka aplikasi juga
+> bisa membaca seluruh isi state. Sebelum menyimpan kredensial apa pun, endpoint itu
+> perlu diberi autentikasi lebih dulu dan password disimpan sebagai hash.
 
 ## Menjalankan secara lokal
 

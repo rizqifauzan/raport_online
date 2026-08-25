@@ -74,12 +74,10 @@ peran masing-masing:
 | Peran | Cakupan |
 |---|---|
 | **Admin** | Akses penuh, termasuk kelola pengguna & tahun ajaran |
-| **Operator** | Kelola santri, kelas, dan cetak raport |
-| **Wali Kelas** | Input nilai & akhlaq untuk kelas yang diampu |
-| **Ustadz** | Input nilai mata pelajaran yang diajar |
+| **Operator** | Kelola santri, kelas, input nilai, dan cetak raport |
 
-Fitur: tambah/edit/hapus pengguna, filter per peran, pencarian nama/username/email,
-serta penetapan kelas untuk peran Wali Kelas dan Ustadz. Dua pengaman ikut dipasang —
+Fitur: tambah/edit/hapus pengguna, filter per peran, dan pencarian
+nama/username/email. Dua pengaman ikut dipasang —
 username wajib unik, dan admin aktif terakhir tidak bisa dihapus atau diturunkan
 perannya supaya aplikasi tidak pernah kehilangan admin.
 

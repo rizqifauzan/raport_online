@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { INITIAL_DATA, HISTORY_SEED } from '../lib/data';
+import { INITIAL_DATA, HISTORY_SEED, normalizeUsers } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -89,7 +89,8 @@ export function StoreProvider({ children }) {
           setKarakter(d.karakter ?? INITIAL_DATA.karakter);
           setKenaikan(d.kenaikan ?? INITIAL_DATA.kenaikan);
           setKenaikanTargetState(d.kenaikanTarget ?? {});
-          setUsers(d.users ?? INITIAL_DATA.users);
+          // normalizeUsers memetakan peran lama (wali-kelas/ustadz) ke 'operator'
+          setUsers(d.users ? normalizeUsers(d.users) : INITIAL_DATA.users);
           setLocks(d.locks ?? {});
           setHistory(d.history ?? HISTORY_SEED);
           setCurrentTaLabel(d.currentTaLabel ?? '2025/2026');

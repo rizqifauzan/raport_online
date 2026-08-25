@@ -7,25 +7,17 @@ import { getInitials, ROLES } from '../../lib/data';
 
 const STATUS_LIST = ['Aktif', 'Nonaktif'];
 const STATUS_BADGE = { Aktif: 'b-green', Nonaktif: 'b-red' };
-const ROLE_BADGE = {
-  admin: 'b-violet',
-  operator: 'b-blue',
-  'wali-kelas': 'b-teal',
-  ustadz: 'b-amber',
-};
+const ROLE_BADGE = { admin: 'b-violet', operator: 'b-blue' };
 const COLORS = ['#0d9488','#7c3aed','#2563eb','#16a34a','#d4a056','#dc2626','#0891b2','#9333ea'];
 
 const EMPTY_FORM = {
-  nama: '', username: '', email: '', role: 'operator', kelasId: '', status: 'Aktif',
+  nama: '', username: '', email: '', role: 'operator', status: 'Aktif',
 };
 
 const roleLabel = (id) => ROLES.find(r => r.id === id)?.label ?? id;
 
-/** Role yang terikat ke satu kelas tertentu. */
-const NEEDS_KELAS = ['wali-kelas', 'ustadz'];
-
 export default function PenggunaPage() {
-  const { users, kelas, addUser, updateUser, removeUser, isUsernameTaken } = useStore();
+  const { users, addUser, updateUser, removeUser, isUsernameTaken } = useStore();
 
   const [tab, setTab] = useState('Semua');
   const [search, setSearch] = useState('');
@@ -77,7 +69,7 @@ export default function PenggunaPage() {
     setEditId(u.id);
     setForm({
       nama: u.nama, username: u.username, email: u.email ?? '',
-      role: u.role, kelasId: u.kelasId ?? '', status: u.status ?? 'Aktif',
+      role: u.role, status: u.status ?? 'Aktif',
     });
     setFormError('');
     setShowModal(true);
@@ -109,7 +101,6 @@ export default function PenggunaPage() {
       username,
       email: form.email.trim(),
       role: form.role,
-      kelasId: NEEDS_KELAS.includes(form.role) ? form.kelasId : '',
       status: form.status,
     };
 
@@ -138,14 +129,6 @@ export default function PenggunaPage() {
   const hapusAdminTerakhir =
     targetHapus?.role === 'admin' && targetHapus.status === 'Aktif' && adminAktif.length === 1;
 
-  const kelasOptions = kelas.slice().sort(
-    (a, b) => a.lembaga.localeCompare(b.lembaga) || a.nomor - b.nomor
-  );
-  const getKelasLabel = (kelasId) => {
-    const k = kelas.find(k => k.id === kelasId);
-    return k ? `${k.lembaga} · ${k.label}` : '—';
-  };
-
   return (
     <div className="app">
       <Sidebar />
@@ -154,7 +137,7 @@ export default function PenggunaPage() {
         <header className="topbar">
           <div>
             <h1>Pengguna</h1>
-            <div className="crumb">Operator, wali kelas, dan ustadz yang punya akses aplikasi</div>
+            <div className="crumb">Admin dan operator yang punya akses aplikasi</div>
           </div>
           <div className="spacer"/>
           <button className="btn primary" onClick={openAdd}>
@@ -201,7 +184,7 @@ export default function PenggunaPage() {
                   <th style={{width:120}}>Username</th>
                   <th>Email</th>
                   <th style={{width:110}}>Peran</th>
-                  <th style={{width:130}}>Kelas Diampu</th>
+                  <th style={{width:110}}>Dibuat</th>
                   <th style={{width:90}}>Status</th>
                   <th style={{width:80}}/>
                 </tr>
@@ -225,9 +208,7 @@ export default function PenggunaPage() {
                     <td>
                       <span className={`badge ${ROLE_BADGE[u.role] ?? 'b-teal'}`}>{roleLabel(u.role)}</span>
                     </td>
-                    <td className="muted" style={{fontSize:13}}>
-                      {NEEDS_KELAS.includes(u.role) ? getKelasLabel(u.kelasId) : '—'}
-                    </td>
+                    <td className="muted" style={{fontSize:13}}>{u.dibuat ?? '—'}</td>
                     <td>
                       <span className={`badge ${STATUS_BADGE[u.status] ?? 'b-teal'}`}>{u.status}</span>
                     </td>
@@ -309,19 +290,6 @@ export default function PenggunaPage() {
                   {ROLES.find(r => r.id === form.role)?.desc}
                 </span>
               </div>
-
-              {NEEDS_KELAS.includes(form.role) && (
-                <div className="form-row">
-                  <label className="form-label">Kelas Diampu</label>
-                  <select className="form-input" value={form.kelasId}
-                    onChange={e => setForm(f => ({...f, kelasId: e.target.value}))}>
-                    <option value="">— Belum ditentukan —</option>
-                    {kelasOptions.map(k => (
-                      <option key={k.id} value={k.id}>{k.lembaga} · {k.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
 
               {formError && (
                 <div style={{

@@ -1,8 +1,11 @@
 'use client';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { INITIAL_DATA, HISTORY_SEED } from '../lib/data';
 
 const Store = createContext(null);
+
+// Jeda sebelum perubahan dikirim ke database (menggabungkan ketikan beruntun).
+const SAVE_DEBOUNCE_MS = 700;
 
 export function StoreProvider({ children }) {
   const [lembaga, setLembaga] = useState('TPQ');
@@ -24,7 +27,112 @@ export function StoreProvider({ children }) {
   const [viewingTaId, setViewingTaId] = useState(null);
   const [currentTaLabel, setCurrentTaLabel] = useState('2025/2026');
 
+  // ---------------------------------------------------------------
+  // Mode penyimpanan
+  //   dbEnabled === null  → belum tahu (masih menanyakan ke /api/state)
+  //   dbEnabled === false → DATABASE_URL tidak di-set, data hanya di memori
+  //   dbEnabled === true  → data dibaca & disimpan ke Neon
+  // ---------------------------------------------------------------
+  const [dbEnabled, setDbEnabled] = useState(null);
+  const [dbStatus, setDbStatus] = useState('loading'); // loading | idle | saving | error
+  const [dbError, setDbError] = useState(null);
+
+  // Menahan penyimpanan sampai hidrasi awal selesai, supaya state seed
+  // tidak menimpa data yang sudah ada di database.
+  const hydratedRef = useRef(false);
+  const saveTimerRef = useRef(null);
+
   const snap = viewingTaId ? (history.find(h => h.id === viewingTaId) ?? null) : null;
+
+  // Kumpulan state yang ikut disimpan. `lembaga`, `periode`, dan `viewingTaId`
+  // sengaja dikecualikan — itu preferensi tampilan, bukan data.
+  const persisted = {
+    students, grades, kelas, ujian, ujianNilai, karakter,
+    kenaikan, kenaikanTarget, locks, history, currentTaLabel,
+  };
+
+  // Hidrasi awal: tanyakan mode ke server, lalu muat data bila mode database.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/state', { cache: 'no-store' });
+        const payload = await res.json();
+        if (cancelled) return;
+
+        if (!payload.enabled) {
+          // Mode demo — biarkan data seed apa adanya.
+          setDbEnabled(false);
+          setDbStatus('idle');
+          return;
+        }
+
+        setDbEnabled(true);
+
+        if (payload.error) {
+          setDbStatus('error');
+          setDbError(payload.error);
+          return;
+        }
+
+        if (payload.data) {
+          const d = payload.data;
+          setStudents(d.students ?? INITIAL_DATA.students);
+          setGrades(d.grades ?? INITIAL_DATA.grades);
+          setKelas(d.kelas ?? INITIAL_DATA.kelas);
+          setUjian(d.ujian ?? INITIAL_DATA.ujian);
+          setUjianNilai(d.ujianNilai ?? INITIAL_DATA.ujianNilai);
+          setKarakter(d.karakter ?? INITIAL_DATA.karakter);
+          setKenaikan(d.kenaikan ?? INITIAL_DATA.kenaikan);
+          setKenaikanTargetState(d.kenaikanTarget ?? {});
+          setLocks(d.locks ?? {});
+          setHistory(d.history ?? HISTORY_SEED);
+          setCurrentTaLabel(d.currentTaLabel ?? '2025/2026');
+        }
+        // payload.data === null → database masih kosong; data seed yang
+        // sedang tampil akan tersimpan otomatis sebagai isi awal.
+
+        setDbStatus('idle');
+        hydratedRef.current = true;
+      } catch (err) {
+        if (cancelled) return;
+        console.error('[store] gagal menghubungi /api/state:', err);
+        setDbEnabled(false);
+        setDbStatus('idle');
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Simpan setiap perubahan ke database (hanya bila mode database aktif).
+  useEffect(() => {
+    if (dbEnabled !== true || !hydratedRef.current) return;
+
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(async () => {
+      setDbStatus('saving');
+      try {
+        const res = await fetch('/api/state', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(persisted),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setDbStatus('idle');
+        setDbError(null);
+      } catch (err) {
+        console.error('[store] gagal menyimpan state:', err);
+        setDbStatus('error');
+        setDbError('Perubahan terakhir gagal disimpan.');
+      }
+    }, SAVE_DEBOUNCE_MS);
+
+    return () => clearTimeout(saveTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dbEnabled, students, grades, kelas, ujian, ujianNilai, karakter,
+      kenaikan, kenaikanTarget, locks, history, currentTaLabel]);
 
   function isLocked(kelasId, p) {
     return locks[kelasId]?.[p] === true;
@@ -208,6 +316,11 @@ export function StoreProvider({ children }) {
       history,
       currentTaLabel,
       archiveCurrentTa,
+
+      // Status penyimpanan
+      dbEnabled,   // null = belum diketahui, false = mode demo, true = Neon
+      dbStatus,    // 'loading' | 'idle' | 'saving' | 'error'
+      dbError,
     }}>
       {children}
     </Store.Provider>

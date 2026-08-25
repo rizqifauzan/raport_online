@@ -1181,3 +1181,25 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   .sheet { box-shadow:none; width:100%; min-height:auto; }
   @page { size:A4; margin:0; }
 }
+
+/* ---------- Indikator mode penyimpanan (sidebar) ---------- */
+.db-badge {
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 4px 10px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  font-size: 11px; font-weight: 700;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.09);
+  color: #9fd4cb;
+}
+.db-badge .db-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto;
+  background: currentColor;
+}
+.db-badge.is-live  { color: #6ee7c8; }
+.db-badge.is-live .db-dot { box-shadow: 0 0 0 3px rgba(110,231,200,.18); }
+.db-badge.is-demo  { color: #e2c896; }
+.db-badge.is-error { color: #fca5a5; }
+.db-badge.is-idle  { color: #7fa8a1; }

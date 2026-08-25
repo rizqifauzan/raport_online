@@ -6,13 +6,34 @@ import { useStore } from '../store';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa } = useStore();
+  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
 
   const active = (href) => pathname === href ? 'active' : '';
 
   const viewingSnap = viewingTaId ? history.find(h => h.id === viewingTaId) : null;
+
+  // Indikator mode penyimpanan (Neon vs memori)
+  const dbTone =
+    dbStatus === 'error' ? 'is-error'
+    : dbEnabled === true ? 'is-live'
+    : dbEnabled === false ? 'is-demo'
+    : 'is-idle';
+  const dbLabel =
+    dbStatus === 'error' ? 'Database bermasalah'
+    : dbEnabled === true ? (dbStatus === 'saving' ? 'Menyimpan…' : 'Tersimpan di database')
+    : dbEnabled === false ? 'Mode demo'
+    : 'Memeriksa…';
+  const dbTitle =
+    dbEnabled === true
+      ? 'Terhubung ke Neon — perubahan tersimpan permanen.'
+      : dbEnabled === false
+        ? 'DATABASE_URL belum di-set — data hanya di memori dan hilang saat refresh.'
+        : 'Memeriksa mode penyimpanan…';
+  const dbTitleFinal = dbStatus === 'error'
+    ? 'Database tidak bisa diakses — perubahan tidak tersimpan. Cek DATABASE_URL.'
+    : dbTitle;
 
   return (
     <aside className="sidebar">
@@ -167,6 +188,11 @@ export default function Sidebar() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className={`db-badge ${dbTone}`} title={dbTitleFinal}>
+        <span className="db-dot" />
+        {dbLabel}
       </div>
 
       <div className="foot">

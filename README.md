@@ -13,6 +13,58 @@ Sistem Raport Online (mockup hi-fi) untuk pesantren — mengelola **TPQ** & **Ma
 | `/input-nilai` | Input nilai 1 kelas (Praktik/Tertulis, rata-rata otomatis) |
 | `/raport` | Preview & cetak raport per santri (A4) |
 
+## Mode data: demo vs database
+
+Aplikasi ini punya **dua mode**, ditentukan otomatis dari ada atau tidaknya `DATABASE_URL`:
+
+| Kondisi | Mode | Perilaku |
+|---|---|---|
+| `DATABASE_URL` **tidak di-set** | Demo | Data hidup di memori browser dan **reset setiap refresh** (persis seperti mockup sebelumnya). Tidak butuh konfigurasi apa pun. |
+| `DATABASE_URL` **di-set** | Database (Neon) | Seluruh data disimpan ke Neon Postgres dan dimuat kembali saat halaman dibuka. |
+
+Mode yang sedang aktif terlihat di badge bawah sidebar: **Mode demo** (kuning) atau
+**Tersimpan di database** (hijau).
+
+### Mengaktifkan Neon
+
+1. Buat project di [neon.tech](https://neon.tech), buka **Connection Details**, salin
+   connection string **Pooled connection**.
+2. Salin `.env.example` menjadi `.env.local`, lalu isi:
+
+   ```bash
+   DATABASE_URL="postgresql://user:password@ep-xxxx-pooler.region.aws.neon.tech/neondb?sslmode=require"
+   ```
+
+3. Jalankan aplikasi. Tabel `app_state` dibuat otomatis saat request pertama —
+   **tidak perlu migrasi manual**. Database yang masih kosong akan diisi data contoh
+   sebagai kondisi awal.
+
+Untuk deploy di Vercel, cukup tambahkan `DATABASE_URL` di **Project Settings →
+Environment Variables**. Selama variabel itu belum ada, deployment tetap jalan normal
+dalam mode demo.
+
+### Cara penyimpanan bekerja
+
+Seluruh state (santri, kelas, nilai, ujian, akhlaq, kenaikan, kunci nilai, dan arsip
+tahun ajaran) disimpan sebagai satu dokumen JSONB di tabel `app_state`, satu baris per
+tenant:
+
+```sql
+CREATE TABLE app_state (
+  id         TEXT PRIMARY KEY,   -- dari APP_TENANT_ID, default 'default'
+  data       JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Perubahan disimpan otomatis (debounce ~0,7 detik) lewat `PUT /api/state`; pembacaan
+lewat `GET /api/state`. Bentuk dokumen dipilih supaya mode database berperilaku
+identik dengan mode demo tanpa mengubah satu pun halaman yang sudah ada. Bila nanti
+butuh query relasional (laporan lintas tahun, akses banyak operator sekaligus),
+skema ini bisa dinormalisasi ke tabel per-entitas tanpa mengubah antarmuka store.
+
+Set `APP_TENANT_ID` bila satu database dipakai beberapa pesantren.
+
 ## Menjalankan secara lokal
 
 ```bash

@@ -3,10 +3,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '../store';
+import { getInitials, ROLES } from '../../lib/data';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus, users, gurus } = useStore();
+  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus, users, gurus, currentUser, logout } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
 
@@ -213,12 +214,17 @@ export default function Sidebar() {
       </div>
 
       <div className="foot">
-        <div className="av">OP</div>
+        <div className="av">{currentUser ? getInitials(currentUser.nama) : '—'}</div>
         <div className="who">
-          <b>Ustadz Hamid</b>
+          <b>{currentUser?.nama ?? 'Memuat…'}</b>
           <br/>
-          <span>Operator</span>
+          <span>{currentUser ? (ROLES.find(r => r.id === currentUser.role)?.label ?? currentUser.role) : ''}</span>
         </div>
+        <button className="logout-btn" title="Keluar" onClick={logout}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 17l5-5-5-5M20 12H9M12 3H6a1 1 0 00-1 1v16a1 1 0 001 1h6"/>
+          </svg>
+        </button>
       </div>
     </aside>
   );

@@ -6,13 +6,14 @@ Sistem Raport Online (mockup hi-fi) untuk pesantren — mengelola **TPQ** & **Ma
 
 | Route | Deskripsi |
 |---|---|
-| `/` | Hub navigasi semua mockup |
+| `/` | Landing page (terbuka untuk umum) |
+| `/login` | Halaman masuk — pintu satu-satunya ke seluruh aplikasi |
 | `/dashboard-a` | Dashboard rekap nilai — Variasi A (friendly) |
 | `/dashboard-b` | Dashboard rekap nilai — Variasi B (command center) |
 | `/siswa` | Manajemen siswa & kelas |
 | `/input-nilai` | Input nilai 1 kelas (Praktik/Tertulis, rata-rata otomatis) |
 | `/raport` | Preview & cetak raport per santri (A4) |
-| `/pengguna` | Manajemen pengguna: tambah, edit, hapus, atur peran |
+| `/pengguna` | Manajemen pengguna: tambah, edit, hapus, atur peran & password (khusus admin) |
 | `/guru` | Data guru + tanda tangan dan kalibrasi posisinya |
 
 ## Mode data: demo vs database
@@ -85,12 +86,48 @@ perannya supaya aplikasi tidak pernah kehilangan admin.
 Seperti data lain, daftar pengguna ikut mode penyimpanan: tersimpan permanen di Neon
 bila `DATABASE_URL` di-set, atau hanya di memori bila tidak.
 
-> **Catatan keamanan.** Modul ini mengelola *daftar pengguna dan perannya*, bukan
-> autentikasi — aplikasi belum punya halaman login dan peran belum menjadi pembatas
-> akses yang sesungguhnya. Password sengaja **tidak** disimpan, karena endpoint
-> `/api/state` saat ini belum terproteksi: siapa pun yang bisa membuka aplikasi juga
-> bisa membaca seluruh isi state. Sebelum menyimpan kredensial apa pun, endpoint itu
-> perlu diberi autentikasi lebih dulu dan password disimpan sebagai hash.
+Setiap pengguna wajib punya **password** agar bisa masuk. Password diatur admin dari
+form tambah/edit, di-hash di server (PBKDF2-SHA256, 120.000 iterasi, salt acak), dan
+hanya hash-nya yang tersimpan — password aslinya tidak pernah ikut disimpan dan tidak
+bisa dibaca kembali. Pengguna berstatus **Nonaktif** atau yang passwordnya **belum
+diatur** akan ditolak saat login.
+
+## Login & pembatasan akses
+
+Seluruh halaman dan endpoint tertutup secara bawaan. Yang bisa dibuka tanpa login
+hanya landing page (`/`, `/landing`), halaman login (`/login`), dan endpoint
+login/logout/session. Selain itu, `middleware.js` mengalihkan halaman ke `/login`
+dan menjawab `401` untuk permintaan `/api/*` — termasuk `/api/state` dan
+`/api/signature`, sehingga isi state tidak lagi bisa dibaca tanpa sesi yang sah.
+
+Sesi disimpan pada cookie `raport_session` yang `httpOnly` (tidak terbaca JavaScript
+halaman), `sameSite=lax`, `secure` di produksi, berlaku 12 jam, dan ditandatangani
+HMAC-SHA256 sehingga isinya tidak bisa dipalsukan.
+
+### Environment
+
+| Variabel | Kegunaan |
+|---|---|
+| `AUTH_SECRET` | Kunci penandatangan cookie sesi. **Wajib di produksi** — buat dengan `openssl rand -base64 32`. Bila kosong, dipakai `DATABASE_URL` sebagai cadangan, lalu kunci pengembangan bawaan yang tidak aman. |
+| `AUTH_ADMIN_USERNAME` | Username akun darurat. Default `admin`. |
+| `AUTH_ADMIN_PASSWORD` | Password akun darurat. Default `admin123` — **ganti sebelum dipakai sungguhan.** |
+
+Akun darurat hidup di environment, bukan di database. Gunanya untuk masuk pertama
+kali (daftar pengguna seed belum punya password) dan sebagai jalan masuk bila semua
+admin terkunci. Setelah admin sungguhan dibuat lewat `/pengguna`, kosongkan atau
+ganti password akun darurat ini.
+
+### Pembatasan peran
+
+Daftar pengguna hanya boleh diubah **admin**. Halaman `/pengguna` menolak operator di
+layar, dan `PUT /api/state` juga mempertahankan `users` yang tersimpan bila sesi
+pengirimnya bukan admin — jadi operator tidak bisa mengangkat dirinya sendiri jadi
+admin dengan memanggil endpoint langsung.
+
+> **Batas yang masih ada.** Selain daftar pengguna, isi state lain (`nilai`, `santri`,
+> `kelas`) belum dibedakan per peran: operator yang sudah login bisa mengubah seluruhnya.
+> Itu sesuai cakupan peran Operator saat ini, tapi perlu diperketat bila nanti ada peran
+> yang lebih sempit, misalnya wali kelas yang hanya boleh menyentuh kelasnya sendiri.
 
 ## Guru & tanda tangan otomatis
 

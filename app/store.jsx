@@ -41,6 +41,9 @@ export function StoreProvider({ children }) {
   //   dbEnabled === false → DATABASE_URL tidak di-set, data hanya di memori
   //   dbEnabled === true  → data dibaca & disimpan ke Neon
   // ---------------------------------------------------------------
+  // Pengguna yang sedang login (dibaca dari cookie sesi lewat /api/auth/session)
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [dbEnabled, setDbEnabled] = useState(null);
   const [dbStatus, setDbStatus] = useState('loading'); // loading | idle | saving | error
   const [dbError, setDbError] = useState(null);
@@ -117,6 +120,32 @@ export function StoreProvider({ children }) {
 
     return () => { cancelled = true; };
   }, []);
+
+  // Siapa yang sedang login. Middleware sudah menjaga akses; ini hanya
+  // supaya antarmuka bisa menampilkan nama & peran pemakainya.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/auth/session', { cache: 'no-store' });
+        if (!res.ok) return;
+        const payload = await res.json();
+        if (!cancelled) setCurrentUser(payload.user ?? null);
+      } catch (err) {
+        console.error('[store] gagal membaca sesi:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('[store] gagal logout:', err);
+    }
+    window.location.href = '/login';
+  }
 
   // Gambar tanda tangan dimuat terpisah — ukurannya besar dan jarang berubah,
   // jadi tidak ikut dalam dokumen state.
@@ -399,6 +428,11 @@ export function StoreProvider({ children }) {
       addGuru, updateGuru, removeGuru,
       signatures,
       setSignature, removeSignature,
+
+      // Sesi
+      currentUser,
+      isAdmin: currentUser?.role === 'admin',
+      logout,
 
       // Pengguna
       users,

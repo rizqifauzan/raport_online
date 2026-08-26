@@ -11,13 +11,15 @@ const ROLE_BADGE = { admin: 'b-violet', operator: 'b-blue' };
 const COLORS = ['#0d9488','#7c3aed','#2563eb','#16a34a','#d4a056','#dc2626','#0891b2','#9333ea'];
 
 const EMPTY_FORM = {
-  nama: '', username: '', email: '', role: 'operator', status: 'Aktif',
+  nama: '', username: '', email: '', role: 'operator', status: 'Aktif', password: '',
 };
+
+const MIN_PASSWORD = 8;
 
 const roleLabel = (id) => ROLES.find(r => r.id === id)?.label ?? id;
 
 export default function PenggunaPage() {
-  const { users, addUser, updateUser, removeUser, isUsernameTaken } = useStore();
+  const { users, addUser, updateUser, removeUser, isUsernameTaken, currentUser, isAdmin } = useStore();
 
   const [tab, setTab] = useState('Semua');
   const [search, setSearch] = useState('');
@@ -27,6 +29,7 @@ export default function PenggunaPage() {
   const [formError, setFormError] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [toast, setToast] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
 
@@ -70,13 +73,15 @@ export default function PenggunaPage() {
     setForm({
       nama: u.nama, username: u.username, email: u.email ?? '',
       role: u.role, status: u.status ?? 'Aktif',
+      password: '', // kosong = biarkan password lama
     });
     setFormError('');
     setShowModal(true);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    if (saving) return;
     const nama = form.nama.trim();
     const username = form.username.trim();
     if (!nama || !username) return;
@@ -86,8 +91,22 @@ export default function PenggunaPage() {
       return;
     }
 
-    // Jangan sampai tidak ada admin aktif yang tersisa.
     const current = editId ? users.find(u => u.id === editId) : null;
+
+    // Password wajib untuk pengguna baru, dan untuk pengguna lama yang
+    // belum pernah punya password sama sekali.
+    const password = form.password;
+    const wajibPassword = !editId || !current?.passwordHash;
+    if (wajibPassword && !password) {
+      setFormError('Password wajib diisi supaya pengguna ini bisa login.');
+      return;
+    }
+    if (password && password.length < MIN_PASSWORD) {
+      setFormError(`Password minimal ${MIN_PASSWORD} karakter.`);
+      return;
+    }
+
+    // Jangan sampai tidak ada admin aktif yang tersisa.
     if (current?.role === 'admin' && current.status === 'Aktif') {
       const masihAdmin = form.role === 'admin' && form.status === 'Aktif';
       if (!masihAdmin && adminAktif.length === 1) {
@@ -104,9 +123,33 @@ export default function PenggunaPage() {
       status: form.status,
     };
 
+    // Password di-hash di server; yang tersimpan hanya hash-nya.
+    if (password) {
+      setSaving(true);
+      try {
+        const res = await fetch('/api/auth/password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setFormError(data.error ?? 'Gagal menyiapkan password.');
+          setSaving(false);
+          return;
+        }
+        payload.passwordHash = data.passwordHash;
+      } catch {
+        setFormError('Tidak bisa menghubungi server. Coba lagi.');
+        setSaving(false);
+        return;
+      }
+      setSaving(false);
+    }
+
     if (editId) {
       updateUser(editId, payload);
-      showToast('Data pengguna diperbarui');
+      showToast(password ? 'Data pengguna & password diperbarui' : 'Data pengguna diperbarui');
     } else {
       addUser({
         id: nextId(),
@@ -128,6 +171,34 @@ export default function PenggunaPage() {
   const targetHapus = users.find(u => u.id === confirmDeleteId);
   const hapusAdminTerakhir =
     targetHapus?.role === 'admin' && targetHapus.status === 'Aktif' && adminAktif.length === 1;
+
+  // Manajemen pengguna hanya untuk admin. Server juga menolak perubahan
+  // daftar pengguna dari non-admin (lihat /api/state), ini penjaga di layar.
+  if (currentUser && !isAdmin) {
+    return (
+      <div className="app">
+        <Sidebar />
+        <div className="main">
+          <HistoryBanner />
+          <header className="topbar">
+            <div>
+              <h1>Pengguna</h1>
+              <div className="crumb">Akses terbatas</div>
+            </div>
+          </header>
+          <div className="content">
+            <div className="card panel" style={{padding:32,textAlign:'center'}}>
+              <h3 style={{margin:'0 0 8px'}}>Halaman ini khusus admin</h3>
+              <p className="muted" style={{margin:0,fontSize:14,lineHeight:1.6}}>
+                Akun <b>{currentUser.nama}</b> berperan sebagai operator.
+                Hubungi admin pesantren bila butuh perubahan data pengguna.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -184,6 +255,7 @@ export default function PenggunaPage() {
                   <th style={{width:120}}>Username</th>
                   <th>Email</th>
                   <th style={{width:110}}>Peran</th>
+                  <th style={{width:100}}>Password</th>
                   <th style={{width:110}}>Dibuat</th>
                   <th style={{width:90}}>Status</th>
                   <th style={{width:80}}/>
@@ -191,7 +263,7 @@ export default function PenggunaPage() {
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={8} style={{textAlign:'center',padding:'40px',color:'var(--muted)'}}>
+                  <tr><td colSpan={9} style={{textAlign:'center',padding:'40px',color:'var(--muted)'}}>
                     {search ? 'Pengguna tidak ditemukan' : 'Belum ada pengguna'}
                   </td></tr>
                 ) : filtered.map((u, i) => (
@@ -207,6 +279,11 @@ export default function PenggunaPage() {
                     <td className="muted" style={{fontSize:13}}>{u.email || '—'}</td>
                     <td>
                       <span className={`badge ${ROLE_BADGE[u.role] ?? 'b-teal'}`}>{roleLabel(u.role)}</span>
+                    </td>
+                    <td>
+                      <span className={`badge ${u.passwordHash ? 'b-green' : 'b-red'}`}>
+                        {u.passwordHash ? 'Terpasang' : 'Belum diatur'}
+                      </span>
                     </td>
                     <td className="muted" style={{fontSize:13}}>{u.dibuat ?? '—'}</td>
                     <td>
@@ -234,9 +311,9 @@ export default function PenggunaPage() {
           </div>
 
           <p className="muted" style={{fontSize:12.5,marginTop:14,lineHeight:1.6}}>
-            Modul ini mengelola <b>daftar pengguna dan perannya</b>. Aplikasi belum punya
-            halaman login, jadi password sengaja tidak disimpan di sini — lihat catatan
-            keamanan di README sebelum mengaktifkan autentikasi.
+            Setiap pengguna butuh <b>password</b> untuk bisa masuk. Pengguna berstatus
+            <b> Nonaktif</b> atau yang passwordnya <b>belum diatur</b> ditolak saat login.
+            Password disimpan sebagai hash PBKDF2 — yang asli tidak pernah ikut tersimpan.
           </p>
         </div>
       </div>
@@ -281,6 +358,22 @@ export default function PenggunaPage() {
               </div>
 
               <div className="form-row">
+                <label className="form-label">
+                  Password
+                  {editId && users.find(u => u.id === editId)?.passwordHash &&
+                    <span className="muted" style={{fontWeight:500}}> — kosongkan bila tidak diubah</span>}
+                </label>
+                <input className="form-input" type="password" autoComplete="new-password"
+                  placeholder={editId ? '••••••••' : `Minimal ${MIN_PASSWORD} karakter`}
+                  value={form.password}
+                  onChange={e => { setForm(f => ({...f, password: e.target.value})); setFormError(''); }}/>
+                <span className="muted" style={{fontSize:12,marginTop:5,display:'block'}}>
+                  Password disimpan dalam bentuk hash — tidak bisa dibaca kembali,
+                  termasuk oleh admin. Bila lupa, atur ulang dari sini.
+                </span>
+              </div>
+
+              <div className="form-row">
                 <label className="form-label">Peran</label>
                 <select className="form-input" value={form.role}
                   onChange={e => { setForm(f => ({...f, role: e.target.value})); setFormError(''); }}>
@@ -302,8 +395,8 @@ export default function PenggunaPage() {
 
               <div className="form-actions" style={{marginTop:4}}>
                 <button type="button" className="btn ghost" onClick={() => setShowModal(false)}>Batal</button>
-                <button type="submit" className="btn primary">
-                  {editId ? 'Simpan Perubahan' : 'Tambah Pengguna'}
+                <button type="submit" className="btn primary" disabled={saving}>
+                  {saving ? 'Menyimpan…' : editId ? 'Simpan Perubahan' : 'Tambah Pengguna'}
                 </button>
               </div>
             </form>

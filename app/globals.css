@@ -159,7 +159,18 @@ button { font-family: inherit; cursor: pointer; }
 }
 .sidebar .foot .who { line-height: 1.2; }
 .sidebar .foot .who b { color: #fff; font-size: 13px; }
+.sidebar .foot .who { line-height: 1.2; min-width: 0; flex: 1; }
+.sidebar .foot .who b,
+.sidebar .foot .who span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sidebar .foot .who span { color: #7fc6bc; font-size: 11px; }
+.sidebar .foot .logout-btn {
+  flex: none; width: 32px; height: 32px; border-radius: 9px;
+  border: 1px solid rgba(255,255,255,.12); background: transparent;
+  color: #9fd8d0; display: grid; place-items: center; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.sidebar .foot .logout-btn svg { width: 17px; height: 17px; }
+.sidebar .foot .logout-btn:hover { background: rgba(248,113,113,.14); border-color: rgba(248,113,113,.35); color: #fca5a5; }
 
 /* ---------- Main ---------- */
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }

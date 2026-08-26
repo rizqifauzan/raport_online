@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { isDbEnabled, loadState, saveState } from "../../../lib/db";
+import { SESSION_COOKIE, readSessionToken } from "../../../lib/auth";
 
 // State selalu dibaca fresh — jangan pernah di-cache.
 export const dynamic = "force-dynamic";
@@ -44,6 +46,25 @@ export async function PUT(request) {
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     return NextResponse.json({ error: "State harus berupa objek." }, { status: 400 });
   }
+  // Daftar pengguna hanya boleh diubah admin. Untuk non-admin, bagian
+  // `users` dari kiriman diabaikan dan yang tersimpan dipertahankan —
+  // supaya operator tidak bisa mengangkat dirinya sendiri jadi admin.
+  const store = await cookies();
+  const session = await readSessionToken(store.get(SESSION_COOKIE)?.value);
+  if (session?.role !== "admin") {
+    try {
+      const row = await loadState();
+      if (row?.data?.users) data.users = row.data.users;
+      else delete data.users;
+    } catch (err) {
+      console.error("[api/state] gagal memeriksa daftar pengguna tersimpan:", err);
+      return NextResponse.json(
+        { enabled: true, saved: false, error: "Gagal menyimpan ke database." },
+        { status: 500 },
+      );
+    }
+  }
+
   try {
     const { updatedAt } = await saveState(data);
     return NextResponse.json({ enabled: true, saved: true, updatedAt });

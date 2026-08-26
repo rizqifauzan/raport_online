@@ -170,8 +170,8 @@ export default function LandingPage() {
             <a href="#modul">Modul</a>
             <a href="#alur">Cara Kerja</a>
           </nav>
-          <Link href="/dashboard-a" className="lp-btn lp-btn-primary lp-btn-sm">
-            Buka Aplikasi {Ic.arrow}
+          <Link href="/login" className="lp-btn lp-btn-primary lp-btn-sm">
+            Masuk {Ic.arrow}
           </Link>
         </div>
       </header>
@@ -192,8 +192,8 @@ export default function LandingPage() {
               Rekap dan peringkat dihitung otomatis — ustadz tinggal mengisi nilai.
             </p>
             <div className="lp-cta">
-              <Link href="/dashboard-a" className="lp-btn lp-btn-primary">
-                Coba Demo Sekarang {Ic.arrow}
+              <Link href="/login" className="lp-btn lp-btn-primary">
+                Masuk ke Aplikasi {Ic.arrow}
               </Link>
               <a href="#fitur" className="lp-btn lp-btn-ghost">Lihat Fitur</a>
             </div>

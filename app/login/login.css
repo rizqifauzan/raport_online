@@ -1,0 +1,110 @@
+/* Halaman login — berdiri sendiri, tidak memakai kerangka aplikasi. */
+
+.login-wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(13, 148, 136, .18), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(212, 160, 86, .16), transparent 60%),
+    #f6f8fa;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 18px;
+  box-shadow: 0 20px 50px -20px rgba(15, 23, 42, .3);
+  padding: 32px 28px;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.login-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.login-logo svg { width: 22px; height: 22px; }
+
+.login-brand-name { font-weight: 800; font-size: 16px; color: #0f172a; letter-spacing: -.01em; }
+.login-brand-sub  { font-size: 12.5px; color: #64748b; margin-top: 1px; }
+
+.login-title { margin: 0 0 4px; font-size: 20px; font-weight: 800; color: #0f172a; }
+.login-desc  { margin: 0 0 22px; font-size: 13.5px; color: #64748b; line-height: 1.6; }
+
+.login-form { display: flex; flex-direction: column; gap: 14px; }
+
+.login-field { display: flex; flex-direction: column; gap: 6px; }
+.login-label { font-size: 12.5px; font-weight: 700; color: #334155; }
+
+.login-input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.login-input:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, .15); }
+.login-input:disabled { background: #f1f5f9; color: #94a3b8; }
+
+.login-pw { position: relative; }
+.login-pw .login-input { padding-right: 74px; }
+.login-pw-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 700; color: #0d9488;
+  padding: 6px 8px; border-radius: 8px;
+}
+.login-pw-toggle:hover { background: rgba(13, 148, 136, .08); }
+
+.login-btn {
+  margin-top: 4px;
+  padding: 12px 16px;
+  border: 0; border-radius: 10px;
+  background: #0d9488; color: #fff;
+  font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, opacity .15s;
+}
+.login-btn:hover:not(:disabled) { background: #0f766e; }
+.login-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.login-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.login-foot {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #eef2f6;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+.login-foot a { color: #0d9488; font-weight: 700; text-decoration: none; }
+.login-foot a:hover { text-decoration: underline; }

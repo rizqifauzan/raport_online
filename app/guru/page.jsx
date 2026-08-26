@@ -45,7 +45,6 @@ function TtdPreview({ image, ttd, nama }) {
   return (
     <div className="ttd-preview">
       <div className="ttd-preview-role">Wali Kelas</div>
-      <div className="ttd-preview-name">{nama || 'Nama Guru'}</div>
       <div className="ttd-preview-box">
         <span className="ttd-preview-guide" />
         {image ? (
@@ -60,6 +59,7 @@ function TtdPreview({ image, ttd, nama }) {
           <span className="ttd-preview-empty">Belum ada tanda tangan</span>
         )}
       </div>
+      <div className="ttd-preview-name">{nama || 'Nama Guru'}</div>
     </div>
   );
 }

@@ -45,6 +45,7 @@ function TtdPreview({ image, ttd, nama }) {
   return (
     <div className="ttd-preview">
       <div className="ttd-preview-role">Wali Kelas</div>
+      <div className="ttd-preview-name">{nama || 'Nama Guru'}</div>
       <div className="ttd-preview-box">
         <span className="ttd-preview-guide" />
         {image ? (
@@ -59,7 +60,6 @@ function TtdPreview({ image, ttd, nama }) {
           <span className="ttd-preview-empty">Belum ada tanda tangan</span>
         )}
       </div>
-      <div className="ttd-preview-name">{nama || 'Nama Guru'}</div>
     </div>
   );
 }
@@ -354,17 +354,17 @@ export default function GuruPage() {
                   <div className="ttd-sliders">
                     <label>
                       <span>Geser ↔<b>{form.ttd.x > 0 ? `+${form.ttd.x}` : form.ttd.x}</b></span>
-                      <input type="range" min={-40} max={40} value={form.ttd.x}
+                      <input type="range" min={-80} max={80} value={form.ttd.x}
                         onChange={e => setTtd({ x: Number(e.target.value) })}/>
                     </label>
                     <label>
                       <span>Geser ↕<b>{form.ttd.y > 0 ? `+${form.ttd.y}` : form.ttd.y}</b></span>
-                      <input type="range" min={-30} max={30} value={form.ttd.y}
+                      <input type="range" min={-60} max={60} value={form.ttd.y}
                         onChange={e => setTtd({ y: Number(e.target.value) })}/>
                     </label>
                     <label>
                       <span>Ukuran<b>{form.ttd.scale}%</b></span>
-                      <input type="range" min={40} max={160} value={form.ttd.scale}
+                      <input type="range" min={40} max={300} value={form.ttd.scale}
                         onChange={e => setTtd({ scale: Number(e.target.value) })}/>
                     </label>
                     <button type="button" className="btn sm ghost" onClick={() => setTtd({ ...TTD_DEFAULT })}>

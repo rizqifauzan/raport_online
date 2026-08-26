@@ -850,6 +850,10 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .rv3-sign-role  { margin-bottom:2px; }
 /* var --rv4-qr-h hanya ada di Raport V4 (default 0px → V3 tidak terpengaruh) */
 .rv3-sign-space { height: max(var(--rv3-sign-h), var(--rv4-qr-h, 0px)); }
+/* Susunan nama & jabatan di atas kotak tanda tangan (Raport V3) */
+.rv3-sign.is-nametop .rv3-sign-name  { margin-bottom: 4px; }
+/* Tanda tangan boleh lebih besar dari kotaknya (tidak terpotong) */
+.rv3-sign.is-nametop .rv3-sign-space { overflow: visible; }
 .rv3-sign-name  { font-weight:700; }
 
 /* ── Raport V4: blok tanda tangan + QR (di kolom Wali Kelas) ── */
@@ -1223,14 +1227,17 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 /* Pratinjau kotak tanda tangan sebagaimana tampil di raport */
 .ttd-preview {
   border: 1px solid var(--line); border-radius: var(--r);
-  padding: 10px 12px; text-align: center; background: #fff;
+  padding: 10px 12px 26px; text-align: center; background: #fff;
   font-size: 11.5px; color: var(--ink-2);
+  overflow: visible;
 }
 .ttd-preview-role { margin-bottom: 2px; }
-.ttd-preview-box { position: relative; height: 62px; overflow: hidden; }
+/* Nama & jabatan di atas, kotak tanda tangan di bawahnya */
+.ttd-preview-name { margin-bottom: 4px; }
+.ttd-preview-box { position: relative; height: 62px; overflow: visible; }
 .ttd-preview-box img {
   position: absolute; left: 50%; top: 0;
-  max-height: 100%; max-width: 150%; transform-origin: top center;
+  height: 100%; width: auto; max-width: none; transform-origin: top center;
 }
 .ttd-preview-guide {
   position: absolute; left: 12%; right: 12%; bottom: 0;
@@ -1256,10 +1263,10 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 }
 
 /* Tanda tangan tercetak di dalam kotak TTD raport */
-.rv3-sign-space { position: relative; }
+.rv3-sign-space { position: relative; overflow: visible; }
 .rv3-sign-img {
   position: absolute; left: 50%; top: 0;
-  max-height: 100%; max-width: 160%;
+  height: 100%; width: auto; max-width: none;
   transform-origin: top center;
   pointer-events: none;
 }

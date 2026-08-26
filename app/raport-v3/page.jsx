@@ -301,22 +301,22 @@ function RaportSheet({ student, layout, paper }) {
       <div className="rv3-date" style={{marginTop:0}}>Mengetahui,</div>
 
       <div className="rv3-signs">
-        <div className="rv3-sign">
+        <div className="rv3-sign is-nametop">
           <div className="rv3-sign-role">{ROLE_ORTU}</div>
-          <div className="rv3-sign-space"/>
           <div className="rv3-sign-name">{student.waliSantri ?? ''}</div>
-        </div>
-        <div className="rv3-sign">
-          <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
           <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{PIMPINAN}</div>
         </div>
-        <div className="rv3-sign">
+        <div className="rv3-sign is-nametop">
+          <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
+          <div className="rv3-sign-name">{PIMPINAN}</div>
+          <div className="rv3-sign-space"/>
+        </div>
+        <div className="rv3-sign is-nametop">
           <div className="rv3-sign-role">{ROLE_WALI}</div>
+          <div className="rv3-sign-name">{guruWali?.nama ?? kelas?.wali ?? ''}</div>
           <div className="rv3-sign-space">
             <TtdWali guru={guruWali} image={ttdWali}/>
           </div>
-          <div className="rv3-sign-name">{guruWali?.nama ?? kelas?.wali ?? ''}</div>
         </div>
       </div>
 

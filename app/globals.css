@@ -1242,6 +1242,15 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 }
 .ttd-preview-role { margin-bottom: 2px; }
 .ttd-preview-box { position: relative; height: 62px; overflow: visible; }
+/* Tanda tangan bisa diseret langsung di pratinjau */
+.ttd-preview-box.bisa-seret {
+  cursor: grab;
+  touch-action: none;          /* di layar sentuh: menyeret ttd, bukan menggulir halaman */
+  user-select: none;
+}
+.ttd-preview-box.bisa-seret:hover { background: rgba(13,148,136,.04); }
+.ttd-preview-box.sedang-seret { cursor: grabbing; background: rgba(13,148,136,.07); }
+.ttd-preview-box.bisa-seret img { pointer-events: none; }
 .ttd-preview-box img {
   position: absolute; left: 50%; top: 0;
   height: 100%; width: auto; max-width: none; transform-origin: top center;

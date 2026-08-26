@@ -11,6 +11,11 @@ const COLORS = ['#0d9488','#7c3aed','#2563eb','#16a34a','#d4a056','#dc2626','#08
 const MAX_W = 600;
 const MAX_H = 260;
 
+// Batas geser — dipakai bersama oleh slider dan seretan tetikus agar konsisten.
+const BATAS_X = 80;
+const BATAS_Y = 60;
+const jepit = (nilai, batas) => Math.max(-batas, Math.min(batas, Math.round(nilai)));
+
 /**
  * Baca file gambar, kecilkan, dan kembalikan sebagai data URL PNG.
  * PNG dipertahankan agar latar transparan hasil pindaian tidak jadi hitam.
@@ -40,17 +45,56 @@ function fileToScaledPng(file) {
   });
 }
 
-/** Pratinjau kotak tanda tangan raport, memakai kalibrasi yang sedang diatur. */
-function TtdPreview({ image, ttd, nama }) {
+/**
+ * Pratinjau kotak tanda tangan raport, memakai kalibrasi yang sedang diatur.
+ * Bila `onMove` diberikan dan gambarnya ada, tanda tangan bisa langsung
+ * diseret dengan tetikus (atau jari) — hasilnya nilai yang sama dengan slider.
+ */
+function TtdPreview({ image, ttd, nama, onMove }) {
+  const seret = useRef(null);
+  const [sedangSeret, setSedangSeret] = useState(false);
+  const bisaSeret = Boolean(image && onMove);
+
+  function mulai(e) {
+    if (!bisaSeret) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    seret.current = { x: e.clientX, y: e.clientY, awal: { x: ttd.x, y: ttd.y } };
+    setSedangSeret(true);
+  }
+
+  function gerak(e) {
+    const d = seret.current;
+    if (!d) return;
+    onMove({
+      x: jepit(d.awal.x + (e.clientX - d.x), BATAS_X),
+      y: jepit(d.awal.y + (e.clientY - d.y), BATAS_Y),
+    });
+  }
+
+  function selesai(e) {
+    if (!seret.current) return;
+    seret.current = null;
+    setSedangSeret(false);
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+  }
+
   return (
     <div className="ttd-preview">
       <div className="ttd-preview-role">Wali Kelas</div>
-      <div className="ttd-preview-box">
+      <div
+        className={`ttd-preview-box${bisaSeret ? ' bisa-seret' : ''}${sedangSeret ? ' sedang-seret' : ''}`}
+        onPointerDown={mulai}
+        onPointerMove={gerak}
+        onPointerUp={selesai}
+        onPointerCancel={selesai}
+      >
         <span className="ttd-preview-guide" />
         {image ? (
           <img
             src={image}
             alt=""
+            draggable={false}
             style={{
               transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})`,
             }}
@@ -349,17 +393,29 @@ export default function GuruPage() {
 
                 <div>
                   <label className="form-label">Posisi di Raport</label>
-                  <TtdPreview image={draftImage} ttd={form.ttd} nama={form.nama}/>
+                  <TtdPreview
+                    image={draftImage}
+                    ttd={form.ttd}
+                    nama={form.nama}
+                    onMove={({ x, y }) => setTtd({ x, y })}
+                  />
+
+                  {draftImage && (
+                    <p className="muted" style={{fontSize:11.5,margin:'7px 0 0',lineHeight:1.5}}>
+                      Seret tanda tangan pada pratinjau untuk menggesernya, atau pakai
+                      slider di bawah untuk penyetelan halus.
+                    </p>
+                  )}
 
                   <div className="ttd-sliders">
                     <label>
                       <span>Geser ↔<b>{form.ttd.x > 0 ? `+${form.ttd.x}` : form.ttd.x}</b></span>
-                      <input type="range" min={-80} max={80} value={form.ttd.x}
+                      <input type="range" min={-BATAS_X} max={BATAS_X} value={form.ttd.x}
                         onChange={e => setTtd({ x: Number(e.target.value) })}/>
                     </label>
                     <label>
                       <span>Geser ↕<b>{form.ttd.y > 0 ? `+${form.ttd.y}` : form.ttd.y}</b></span>
-                      <input type="range" min={-60} max={60} value={form.ttd.y}
+                      <input type="range" min={-BATAS_Y} max={BATAS_Y} value={form.ttd.y}
                         onChange={e => setTtd({ y: Number(e.target.value) })}/>
                     </label>
                     <label>

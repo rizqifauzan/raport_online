@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useLayoutEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
@@ -14,7 +14,18 @@ const MAX_H = 260;
 // Batas geser — dipakai bersama oleh slider dan seretan tetikus agar konsisten.
 const BATAS_X = 80;
 const BATAS_Y = 60;
+const SKALA_MIN = 40;
+const SKALA_MAX = 300;
 const jepit = (nilai, batas) => Math.max(-batas, Math.min(batas, Math.round(nilai)));
+const jepitSkala = (nilai) => Math.max(SKALA_MIN, Math.min(SKALA_MAX, Math.round(nilai)));
+
+// Pegangan ukuran di empat sudut, seperti gambar terpilih di Word.
+const SUDUT = [
+  { id: 'kiri-atas',   x: 0, y: 0, cursor: 'nwse-resize' },
+  { id: 'kanan-atas',  x: 1, y: 0, cursor: 'nesw-resize' },
+  { id: 'kiri-bawah',  x: 0, y: 1, cursor: 'nesw-resize' },
+  { id: 'kanan-bawah', x: 1, y: 1, cursor: 'nwse-resize' },
+];
 
 /**
  * Baca file gambar, kecilkan, dan kembalikan sebagai data URL PNG.
@@ -47,51 +58,99 @@ function fileToScaledPng(file) {
 
 /**
  * Pratinjau kotak tanda tangan raport, memakai kalibrasi yang sedang diatur.
- * Bila `onMove` diberikan dan gambarnya ada, tanda tangan bisa langsung
- * diseret dengan tetikus (atau jari) — hasilnya nilai yang sama dengan slider.
+ *
+ * Bila `onChange` diberikan dan gambarnya ada, tanda tangan bisa diatur
+ * langsung dengan tetikus — seperti gambar di Word:
+ *   - seret badan gambar  → menggeser  (ttd.x / ttd.y)
+ *   - tarik pegangan sudut → mengubah ukuran (ttd.scale)
+ *   - Ctrl/⌘ + roda tetikus → mengubah ukuran tanpa melepas kursor
+ * Semuanya menulis nilai yang sama dengan slider.
  */
-function TtdPreview({ image, ttd, nama, onMove }) {
-  const seret = useRef(null);
-  const [sedangSeret, setSedangSeret] = useState(false);
-  const bisaSeret = Boolean(image && onMove);
+function TtdPreview({ image, ttd, nama, onChange }) {
+  const kotakRef = useRef(null);
+  const gambarRef = useRef(null);
+  const aksi = useRef(null);
+  const [mode, setMode] = useState(null);            // 'geser' | 'ukur' | null
+  const [bingkai, setBingkai] = useState(null);      // posisi gambar untuk menaruh pegangan
+  const interaktif = Boolean(image && onChange);
 
-  function mulai(e) {
-    if (!bisaSeret) return;
+  // Pegangan mengikuti gambar; rect dibaca setelah transform diterapkan.
+  useLayoutEffect(() => {
+    if (!interaktif || !gambarRef.current || !kotakRef.current) { setBingkai(null); return; }
+    const g = gambarRef.current.getBoundingClientRect();
+    const k = kotakRef.current.getBoundingClientRect();
+    setBingkai({
+      left: g.left - k.left, top: g.top - k.top, width: g.width, height: g.height,
+      kotakW: k.width, kotakH: k.height,
+    });
+  }, [image, ttd.x, ttd.y, ttd.scale, interaktif]);
+
+  function mulaiGeser(e) {
+    if (!interaktif) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture?.(e.pointerId);
-    seret.current = { x: e.clientX, y: e.clientY, awal: { x: ttd.x, y: ttd.y } };
-    setSedangSeret(true);
+    aksi.current = { jenis: 'geser', x: e.clientX, y: e.clientY, awal: { x: ttd.x, y: ttd.y } };
+    setMode('geser');
+  }
+
+  function mulaiUkur(e) {
+    if (!interaktif) return;
+    e.preventDefault();
+    e.stopPropagation();                      // jangan ikut menggeser
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    // transform-origin gambar adalah "top center", jadi titik itu tidak ikut
+    // bergerak saat diperbesar — pas dipakai sebagai poros pengukuran.
+    const g = gambarRef.current.getBoundingClientRect();
+    const poros = { x: g.left + g.width / 2, y: g.top };
+    const jarak = Math.hypot(e.clientX - poros.x, e.clientY - poros.y);
+    aksi.current = { jenis: 'ukur', poros, jarakAwal: Math.max(jarak, 1), skalaAwal: ttd.scale };
+    setMode('ukur');
   }
 
   function gerak(e) {
-    const d = seret.current;
-    if (!d) return;
-    onMove({
-      x: jepit(d.awal.x + (e.clientX - d.x), BATAS_X),
-      y: jepit(d.awal.y + (e.clientY - d.y), BATAS_Y),
-    });
+    const a = aksi.current;
+    if (!a) return;
+    if (a.jenis === 'geser') {
+      onChange({
+        x: jepit(a.awal.x + (e.clientX - a.x), BATAS_X),
+        y: jepit(a.awal.y + (e.clientY - a.y), BATAS_Y),
+      });
+    } else {
+      const jarak = Math.hypot(e.clientX - a.poros.x, e.clientY - a.poros.y);
+      onChange({ scale: jepitSkala(a.skalaAwal * (jarak / a.jarakAwal)) });
+    }
   }
 
   function selesai(e) {
-    if (!seret.current) return;
-    seret.current = null;
-    setSedangSeret(false);
+    if (!aksi.current) return;
+    aksi.current = null;
+    setMode(null);
     e.currentTarget.releasePointerCapture?.(e.pointerId);
+  }
+
+  // Ctrl/⌘ + roda tetikus untuk mengubah ukuran (roda polos tetap menggulir modal).
+  function roda(e) {
+    if (!interaktif || !(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    onChange({ scale: jepitSkala(ttd.scale - e.deltaY * 0.1) });
   }
 
   return (
     <div className="ttd-preview">
       <div className="ttd-preview-role">Wali Kelas</div>
       <div
-        className={`ttd-preview-box${bisaSeret ? ' bisa-seret' : ''}${sedangSeret ? ' sedang-seret' : ''}`}
-        onPointerDown={mulai}
+        ref={kotakRef}
+        className={`ttd-preview-box${interaktif ? ' bisa-seret' : ''}${mode ? ` sedang-${mode}` : ''}`}
+        onPointerDown={mulaiGeser}
         onPointerMove={gerak}
         onPointerUp={selesai}
         onPointerCancel={selesai}
+        onWheel={roda}
       >
         <span className="ttd-preview-guide" />
         {image ? (
           <img
+            ref={gambarRef}
             src={image}
             alt=""
             draggable={false}
@@ -101,6 +160,37 @@ function TtdPreview({ image, ttd, nama, onMove }) {
           />
         ) : (
           <span className="ttd-preview-empty">Belum ada tanda tangan</span>
+        )}
+
+        {interaktif && bingkai && (
+          <>
+            <div
+              className="ttd-frame"
+              style={{ left: bingkai.left, top: bingkai.top, width: bingkai.width, height: bingkai.height }}
+            />
+            {SUDUT.map(sudut => {
+              // Pegangan dijepit ke dalam kotak pratinjau supaya tetap bisa
+              // diraih walau gambarnya sudah lebih besar dari kotaknya.
+              const px = bingkai.left + sudut.x * bingkai.width;
+              const py = bingkai.top + sudut.y * bingkai.height;
+              const INSET = 5;
+              return (
+                <span
+                  key={sudut.id}
+                  className="ttd-handle"
+                  style={{
+                    left: Math.max(INSET, Math.min(bingkai.kotakW - INSET, px)),
+                    top: Math.max(INSET, Math.min(bingkai.kotakH - INSET, py)),
+                    cursor: sudut.cursor,
+                  }}
+                  onPointerDown={mulaiUkur}
+                  onPointerMove={gerak}
+                  onPointerUp={selesai}
+                  onPointerCancel={selesai}
+                />
+              );
+            })}
+          </>
         )}
       </div>
       <div className="ttd-preview-name">{nama || 'Nama Guru'}</div>
@@ -397,13 +487,14 @@ export default function GuruPage() {
                     image={draftImage}
                     ttd={form.ttd}
                     nama={form.nama}
-                    onMove={({ x, y }) => setTtd({ x, y })}
+                    onChange={setTtd}
                   />
 
                   {draftImage && (
                     <p className="muted" style={{fontSize:11.5,margin:'7px 0 0',lineHeight:1.5}}>
-                      Seret tanda tangan pada pratinjau untuk menggesernya, atau pakai
-                      slider di bawah untuk penyetelan halus.
+                      Seret tanda tangan untuk menggeser, tarik titik di sudutnya untuk
+                      mengubah ukuran (Ctrl + roda tetikus juga bisa). Slider di bawah
+                      tetap tersedia untuk penyetelan halus.
                     </p>
                   )}
 
@@ -420,7 +511,7 @@ export default function GuruPage() {
                     </label>
                     <label>
                       <span>Ukuran<b>{form.ttd.scale}%</b></span>
-                      <input type="range" min={40} max={300} value={form.ttd.scale}
+                      <input type="range" min={SKALA_MIN} max={SKALA_MAX} value={form.ttd.scale}
                         onChange={e => setTtd({ scale: Number(e.target.value) })}/>
                     </label>
                     <button type="button" className="btn sm ghost" onClick={() => setTtd({ ...TTD_DEFAULT })}>

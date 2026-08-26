@@ -1249,7 +1249,24 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   user-select: none;
 }
 .ttd-preview-box.bisa-seret:hover { background: rgba(13,148,136,.04); }
-.ttd-preview-box.sedang-seret { cursor: grabbing; background: rgba(13,148,136,.07); }
+.ttd-preview-box.sedang-geser { cursor: grabbing; background: rgba(13,148,136,.07); }
+.ttd-preview-box.sedang-ukur  { background: rgba(13,148,136,.07); }
+
+/* Bingkai & pegangan ukuran — meniru gambar terpilih di pengolah kata */
+.ttd-frame {
+  position: absolute; z-index: 2; pointer-events: none;
+  outline: 1px dashed rgba(13,148,136,.55);
+  outline-offset: 1px;
+}
+.ttd-handle {
+  position: absolute; z-index: 3;
+  width: 10px; height: 10px; margin: -5px 0 0 -5px;
+  background: #fff; border: 1.5px solid var(--brand);
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(15,23,42,.25);
+  touch-action: none;
+}
+.ttd-handle:hover { background: var(--brand-100); }
 .ttd-preview-box.bisa-seret img { pointer-events: none; }
 .ttd-preview-box img {
   position: absolute; left: 50%; top: 0;

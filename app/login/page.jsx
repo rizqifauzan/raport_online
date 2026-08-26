@@ -1,10 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import './login.css';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
@@ -36,8 +34,10 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
-      router.replace(next);
-      router.refresh();
+      // Navigasi penuh, bukan router.replace: StoreProvider hidup di layout
+      // root dan sudah ter-mount sejak halaman login, sehingga sesi serta
+      // seluruh data hanya termuat ulang bila halaman dimuat dari awal.
+      window.location.replace(next);
     } catch {
       setError('Tidak bisa menghubungi server. Periksa koneksi.');
       setLoading(false);

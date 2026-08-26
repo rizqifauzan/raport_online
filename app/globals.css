@@ -1234,7 +1234,11 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .ttd-preview-box img {
   position: absolute; left: 50%; top: 0;
   height: 100%; width: auto; max-width: none; transform-origin: top center;
+  z-index: 0;
 }
+/* Sama seperti di raport: teks menang atas gambar */
+.ttd-preview-role,
+.ttd-preview-name { position: relative; z-index: 1; }
 .ttd-preview-guide {
   position: absolute; left: 12%; right: 12%; bottom: 0;
   border-bottom: 1px dashed var(--line);
@@ -1265,4 +1269,9 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   height: 100%; width: auto; max-width: none;
   transform-origin: top center;
   pointer-events: none;
+  z-index: 0;
 }
+/* Jabatan & nama selalu berada di atas gambar tanda tangan, sehingga tetap
+   terbaca meskipun tanda tangan meluber melewati kotaknya. */
+.rv3-sign-role,
+.rv3-sign-name { position: relative; z-index: 1; }

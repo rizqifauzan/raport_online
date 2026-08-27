@@ -13,7 +13,7 @@ const ROLE_LABEL = { TPQ: 'Pemimpin TPQ', Madin: 'Pemimpin Madin' };
  * Modal pengaturan pemimpin satu lembaga: nama + gambar tanda tangan
  * beserta kalibrasi posisinya (dipakai saat raport dicetak).
  */
-function PimpinanModal({ lembaga, data, image, onClose, onSave }) {
+function PimpinanModal({ lembaga, data, image, gurus, signatures, onClose, onSave }) {
   const [nama, setNama] = useState(data.nama ?? '');
   const [ttd, setTtdState] = useState({ ...TTD_DEFAULT, ...(data.ttd ?? {}) });
   const [draftImage, setDraftImage] = useState(image ?? null);
@@ -22,6 +22,21 @@ function PimpinanModal({ lembaga, data, image, onClose, onSave }) {
   const fileRef = useRef(null);
 
   const setTtd = patch => setTtdState(t => ({ ...t, ...patch }));
+
+  /**
+   * Ambil identitas dari data guru: nama, gambar tanda tangan, dan
+   * kalibrasinya disalin ke data pemimpin. Setelah disalin, data pemimpin
+   * berdiri sendiri — mengubah atau menghapus gurunya kelak tidak mengusik
+   * raport yang sudah memakainya, termasuk arsip tahun ajaran.
+   */
+  function ambilDariGuru(guruId) {
+    const guru = gurus.find(g => g.id === guruId);
+    if (!guru) return;
+    setNama(guru.nama);
+    setTtdState({ ...TTD_DEFAULT, ...(guru.ttd ?? {}) });
+    setDraftImage(signatures[guru.id] ?? null);
+    setFormError('');
+  }
 
   async function handlePickFile(e) {
     const file = e.target.files?.[0];
@@ -60,6 +75,26 @@ function PimpinanModal({ lembaga, data, image, onClose, onSave }) {
         </div>
 
         <form onSubmit={handleSubmit} style={{display:'grid',gap:16}}>
+          <div className="form-row">
+            <label className="form-label">Ambil dari Data Guru</label>
+            <select
+              className="form-input"
+              value=""
+              onChange={e => { if (e.target.value) ambilDariGuru(e.target.value); }}
+            >
+              <option value="">— pilih guru untuk mengisi otomatis —</option>
+              {gurus.map(g => (
+                <option key={g.id} value={g.id}>
+                  {g.nama}{signatures[g.id] ? ' · ada TTD' : ''}
+                </option>
+              ))}
+            </select>
+            <span className="muted" style={{fontSize:11.5,marginTop:6,display:'block',lineHeight:1.55}}>
+              Memilih guru mengisi nama beserta tanda tangannya. Isian di bawah tetap
+              bisa disunting, atau diisi manual bila pemimpinnya bukan guru terdaftar.
+            </span>
+          </div>
+
           <div className="form-row">
             <label className="form-label">Nama {ROLE_LABEL[lembaga]} (opsional)</label>
             <input className="form-input" placeholder={`cth. Muhlisun S.Th, I.`}
@@ -158,6 +193,7 @@ export default function TahunAjaranPage() {
     students, kelas, ujian, kenaikan,
     isHistory, viewingTaId, setViewingTa,
     pimpinan, updatePimpinan, setPimpinanSignature, removePimpinanSignature, signatures,
+    gurus,
   } = useStore();
 
   const [showModal, setShowModal] = useState(false);
@@ -384,6 +420,8 @@ export default function TahunAjaranPage() {
 
       {editLembaga && (
         <PimpinanModal
+          gurus={gurus}
+          signatures={signatures}
           lembaga={editLembaga}
           data={pimpinan[editLembaga]}
           image={signatures[pimpinanTtdKey(editLembaga)] ?? null}

@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
-import { findWaliKelasGuru } from '../../lib/data';
+import { findWaliKelasGuru, namaCetak } from '../../lib/data';
 
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -13,7 +13,6 @@ const STORAGE_KEY = 'raport-v3-settings-v3';
 // Teks tetap (tidak dapat diubah lewat panel)
 const KOTA = 'Magelang';
 // Nama pemimpin diambil dari data tahun ajaran (halaman Tahun Ajaran).
-const PIMPINAN_FALLBACK = 'Muhlisun S.Th, I.';
 const JUDUL_PRAKTIK = 'UJIAN PRAKTIK';
 const JUDUL_KITABAH = 'UJIAN KITABAH';
 /** Tanda tangan, diposisikan sesuai kalibrasi pemiliknya. */
@@ -100,7 +99,7 @@ function RaportSheet({ student, layout, paper }) {
 
   // Pemimpin lembaga untuk T.A. yang sedang ditampilkan (opsional)
   const pimpinan = getPimpinan(kelas?.lembaga ?? 'TPQ');
-  const namaPimpinan = pimpinan.nama || PIMPINAN_FALLBACK;
+  const namaPimpinan = namaCetak(pimpinan.nama);
 
   const kelasSiswa = useMemo(
     () => students.filter(s => s.kelasId === student.kelasId && s.status !== 'Lulus'),
@@ -309,7 +308,7 @@ function RaportSheet({ student, layout, paper }) {
         <div className="rv3-sign">
           <div className="rv3-sign-role">{ROLE_ORTU}</div>
           <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{student.waliSantri ?? ''}</div>
+          <div className="rv3-sign-name">{namaCetak(student.waliSantri)}</div>
         </div>
         <div className="rv3-sign">
           <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
@@ -323,7 +322,7 @@ function RaportSheet({ student, layout, paper }) {
           <div className="rv3-sign-space">
             <TtdImg ttd={guruWali?.ttd} image={ttdWali}/>
           </div>
-          <div className="rv3-sign-name">{guruWali?.nama ?? kelas?.wali ?? ''}</div>
+          <div className="rv3-sign-name">{namaCetak(guruWali?.nama ?? kelas?.wali)}</div>
         </div>
       </div>
 

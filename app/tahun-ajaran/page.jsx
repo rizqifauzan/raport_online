@@ -1,10 +1,8 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import { useStore } from '../store';
-import { TtdPreview, fileToScaledPng, MAX_W, MAX_H, BATAS_X, BATAS_Y, SKALA_MIN, SKALA_MAX }
-  from '../components/TtdEditor';
-import { LEMBAGA_LIST, TTD_DEFAULT, pimpinanTtdKey } from '../../lib/data';
+import { LEMBAGA_LIST, TTD_DEFAULT, GARIS_ISIAN } from '../../lib/data';
 
 const ROLE_LABEL = { TPQ: 'Pemimpin TPQ', Madin: 'Pemimpin Madin' };
 
@@ -13,49 +11,21 @@ const ROLE_LABEL = { TPQ: 'Pemimpin TPQ', Madin: 'Pemimpin Madin' };
  * Modal pengaturan pemimpin satu lembaga: nama + gambar tanda tangan
  * beserta kalibrasi posisinya (dipakai saat raport dicetak).
  */
-function PimpinanModal({ lembaga, data, image, gurus, signatures, onClose, onSave }) {
-  const [nama, setNama] = useState(data.nama ?? '');
-  const [ttd, setTtdState] = useState({ ...TTD_DEFAULT, ...(data.ttd ?? {}) });
-  const [draftImage, setDraftImage] = useState(image ?? null);
+function PimpinanModal({ lembaga, guruId, gurus, signatures, onClose, onSave }) {
+  const [pilihan, setPilihan] = useState(guruId ?? '');
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState('');
-  const fileRef = useRef(null);
 
-  const setTtd = patch => setTtdState(t => ({ ...t, ...patch }));
-
-  /**
-   * Ambil identitas dari data guru: nama, gambar tanda tangan, dan
-   * kalibrasinya disalin ke data pemimpin. Setelah disalin, data pemimpin
-   * berdiri sendiri — mengubah atau menghapus gurunya kelak tidak mengusik
-   * raport yang sudah memakainya, termasuk arsip tahun ajaran.
-   */
-  function ambilDariGuru(guruId) {
-    const guru = gurus.find(g => g.id === guruId);
-    if (!guru) return;
-    setNama(guru.nama);
-    setTtdState({ ...TTD_DEFAULT, ...(guru.ttd ?? {}) });
-    setDraftImage(signatures[guru.id] ?? null);
-    setFormError('');
-  }
-
-  async function handlePickFile(e) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
-    try {
-      setDraftImage(await fileToScaledPng(file));
-      setFormError('');
-    } catch (err) {
-      setFormError(err.message);
-    }
-  }
+  const guru = pilihan ? gurus.find(g => g.id === pilihan) : null;
+  const image = guru ? (signatures[guru.id] ?? null) : null;
+  const ttd = { ...TTD_DEFAULT, ...(guru?.ttd ?? {}) };
 
   async function handleSubmit(e) {
     e.preventDefault();
     setBusy(true);
     setFormError('');
     try {
-      await onSave({ nama: nama.trim(), ttd, image: draftImage });
+      await onSave(pilihan);
       onClose();
     } catch (err) {
       setFormError(err.message || 'Gagal menyimpan.');
@@ -66,7 +36,7 @@ function PimpinanModal({ lembaga, data, image, gurus, signatures, onClose, onSav
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal" style={{maxWidth:760}}>
+      <div className="modal" style={{maxWidth:520}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <h3 style={{margin:0}}>{ROLE_LABEL[lembaga]}</h3>
           <button className="icon-btn" onClick={onClose}>
@@ -76,98 +46,49 @@ function PimpinanModal({ lembaga, data, image, gurus, signatures, onClose, onSav
 
         <form onSubmit={handleSubmit} style={{display:'grid',gap:16}}>
           <div className="form-row">
-            <label className="form-label">Ambil dari Data Guru</label>
-            <select
-              className="form-input"
-              value=""
-              onChange={e => { if (e.target.value) ambilDariGuru(e.target.value); }}
-            >
-              <option value="">— pilih guru untuk mengisi otomatis —</option>
+            <label className="form-label">Pilih Guru</label>
+            <select className="form-input" value={pilihan} onChange={e => setPilihan(e.target.value)} autoFocus>
+              <option value="">— belum ditentukan —</option>
               {gurus.map(g => (
                 <option key={g.id} value={g.id}>
-                  {g.nama}{signatures[g.id] ? ' · ada TTD' : ''}
+                  {g.nama}{signatures[g.id] ? ' · ada TTD' : ' · tanpa TTD'}
                 </option>
               ))}
             </select>
             <span className="muted" style={{fontSize:11.5,marginTop:6,display:'block',lineHeight:1.55}}>
-              Memilih guru mengisi nama beserta tanda tangannya. Isian di bawah tetap
-              bisa disunting, atau diisi manual bila pemimpinnya bukan guru terdaftar.
+              Nama, tanda tangan, dan posisinya mengikuti data guru tersebut — diatur
+              sekali di menu <b>Guru &amp; TTD</b>, tidak perlu diunggah ulang di sini.
+              Dibiarkan kosong berarti kolom pemimpin pada raport {lembaga} tercetak
+              sebagai garis titik-titik untuk ditandatangani manual.
             </span>
           </div>
 
           <div className="form-row">
-            <label className="form-label">Nama {ROLE_LABEL[lembaga]} (opsional)</label>
-            <input className="form-input" placeholder={`cth. Muhlisun S.Th, I.`}
-              value={nama} onChange={e => setNama(e.target.value)} autoFocus/>
-            <span className="muted" style={{fontSize:11.5,marginTop:6,display:'block',lineHeight:1.55}}>
-              Dikosongkan berarti kolom pemimpin pada raport {lembaga} dibiarkan kosong
-              untuk ditandatangani manual.
-            </span>
-          </div>
-
-          <div className="ttd-editor">
-            <div>
-              <label className="form-label">Gambar Tanda Tangan</label>
-              <div className="ttd-drop">
-                {draftImage
-                  ? <img src={draftImage} alt="Pratinjau tanda tangan"/>
-                  : <span className="muted" style={{fontSize:12.5}}>PNG latar transparan paling rapi</span>}
-              </div>
-              <div className="row" style={{gap:8,marginTop:10}}>
-                <button type="button" className="btn sm" onClick={() => fileRef.current?.click()} disabled={busy}>
-                  {draftImage ? 'Ganti Gambar' : 'Pilih Gambar'}
-                </button>
-                {draftImage && (
-                  <button type="button" className="btn sm ghost" style={{color:'var(--red)'}} onClick={() => setDraftImage(null)}>
-                    Hapus
-                  </button>
+            <label className="form-label">Tampil di Raport</label>
+            <div className="ttd-preview">
+              <div className="ttd-preview-role">{ROLE_LABEL[lembaga]}</div>
+              <div className="ttd-preview-box">
+                <span className="ttd-preview-guide" />
+                {image ? (
+                  <img
+                    src={image}
+                    alt=""
+                    draggable={false}
+                    style={{ transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})` }}
+                  />
+                ) : (
+                  <span className="ttd-preview-empty">
+                    {guru ? 'Guru ini belum punya tanda tangan' : 'Belum ada guru dipilih'}
+                  </span>
                 )}
-                <input ref={fileRef} type="file" accept="image/png,image/jpeg" hidden onChange={handlePickFile}/>
               </div>
-              <p className="muted" style={{fontSize:11.5,marginTop:8,lineHeight:1.55}}>
-                Gambar otomatis dikecilkan ke maks. {MAX_W}×{MAX_H} px sebelum disimpan.
-              </p>
+              <div className="ttd-preview-name">{guru?.nama || GARIS_ISIAN}</div>
             </div>
-
-            <div>
-              <label className="form-label">Posisi di Raport</label>
-              <TtdPreview
-                image={draftImage}
-                ttd={ttd}
-                nama={nama}
-                onChange={setTtd}
-                role={ROLE_LABEL[lembaga]}
-                placeholder={`Nama ${ROLE_LABEL[lembaga]}`}
-              />
-
-              {draftImage && (
-                <p className="muted" style={{fontSize:11.5,margin:'7px 0 0',lineHeight:1.5}}>
-                  Seret tanda tangan untuk menggeser, tarik titik di sudutnya untuk
-                  mengubah ukuran (Ctrl + roda tetikus juga bisa).
-                </p>
-              )}
-
-              <div className="ttd-sliders">
-                <label>
-                  <span>Geser ↔<b>{ttd.x > 0 ? `+${ttd.x}` : ttd.x}</b></span>
-                  <input type="range" min={-BATAS_X} max={BATAS_X} value={ttd.x}
-                    onChange={e => setTtd({ x: Number(e.target.value) })}/>
-                </label>
-                <label>
-                  <span>Geser ↕<b>{ttd.y > 0 ? `+${ttd.y}` : ttd.y}</b></span>
-                  <input type="range" min={-BATAS_Y} max={BATAS_Y} value={ttd.y}
-                    onChange={e => setTtd({ y: Number(e.target.value) })}/>
-                </label>
-                <label>
-                  <span>Ukuran<b>{ttd.scale}%</b></span>
-                  <input type="range" min={SKALA_MIN} max={SKALA_MAX} value={ttd.scale}
-                    onChange={e => setTtd({ scale: Number(e.target.value) })}/>
-                </label>
-                <button type="button" className="btn sm ghost" onClick={() => setTtdState({ ...TTD_DEFAULT })}>
-                  Reset posisi
-                </button>
-              </div>
-            </div>
+            {guru && !image && (
+              <span className="muted" style={{fontSize:11.5,marginTop:6,display:'block',lineHeight:1.55}}>
+                Unggah tanda tangannya lewat menu <b>Guru &amp; TTD</b> agar ikut tercetak.
+              </span>
+            )}
           </div>
 
           {formError && (
@@ -175,7 +96,7 @@ function PimpinanModal({ lembaga, data, image, gurus, signatures, onClose, onSav
               borderRadius:'var(--r-sm)',fontSize:13,fontWeight:600}}>{formError}</div>
           )}
 
-          <div className="form-actions" style={{marginTop:4}}>
+          <div className="form-actions">
             <button type="button" className="btn ghost" onClick={onClose} disabled={busy}>Batal</button>
             <button type="submit" className="btn primary" disabled={busy}>
               {busy ? 'Menyimpan…' : 'Simpan'}
@@ -192,12 +113,12 @@ export default function TahunAjaranPage() {
     currentTaLabel, history, archiveCurrentTa,
     students, kelas, ujian, kenaikan,
     isHistory, viewingTaId, setViewingTa,
-    pimpinan, updatePimpinan, setPimpinanSignature, removePimpinanSignature, signatures,
-    gurus,
+    pimpinan, setPimpinanGuru, getPimpinan, signatures, gurus,
   } = useStore();
 
   const [showModal, setShowModal] = useState(false);
   const [newLabel, setNewLabel] = useState('');
+  // Pemimpin untuk T.A. baru: id guru; kosong = ikut yang sekarang
   const [newPimpinan, setNewPimpinan] = useState({ TPQ: '', Madin: '' });
   const [toast, setToast] = useState('');
   // Lembaga yang sedang diatur pemimpinnya ('TPQ' | 'Madin' | null)
@@ -206,11 +127,10 @@ export default function TahunAjaranPage() {
   function handleArchive(e) {
     e.preventDefault();
     if (!newLabel.trim()) return;
-    // Pemimpin T.A. baru: pakai isian bila diisi, selain itu bawa yang lama.
-    const pimpinanBaru = Object.fromEntries(LEMBAGA_LIST.map(l => {
-      const isian = newPimpinan[l].trim();
-      return [l, { ...pimpinan[l], nama: isian || pimpinan[l].nama }];
-    }));
+    // Pemimpin T.A. baru: pakai guru yang dipilih; bila tidak, bawa yang lama.
+    const pimpinanBaru = Object.fromEntries(LEMBAGA_LIST.map(l => (
+      [l, { guruId: newPimpinan[l] || (pimpinan[l]?.guruId ?? '') }]
+    )));
     archiveCurrentTa(newLabel.trim(), pimpinanBaru);
     setShowModal(false);
     setNewLabel('');
@@ -225,16 +145,9 @@ export default function TahunAjaranPage() {
   }
 
   /** Simpan nama, kalibrasi, dan gambar tanda tangan pemimpin satu lembaga. */
-  async function handleSavePimpinan(lembaga, { nama, ttd, image }) {
-    updatePimpinan(lembaga, { nama, ttd });
-    const tersimpan = signatures[pimpinanTtdKey(lembaga)] ?? null;
-    if (image && image !== tersimpan) {
-      const res = await setPimpinanSignature(lembaga, image);
-      if (res && res.ok === false) throw new Error(res.error || 'Gagal menyimpan tanda tangan.');
-    } else if (!image && tersimpan) {
-      await removePimpinanSignature(lembaga);
-    }
-    showToast(`${ROLE_LABEL[lembaga]} diperbarui.`);
+  function handleSavePimpinan(lembaga, guruId) {
+    setPimpinanGuru(lembaga, guruId);
+    showToast(guruId ? 'Pemimpin lembaga diperbarui' : 'Pemimpin lembaga dikosongkan');
   }
 
   function showToast(msg) {
@@ -322,14 +235,14 @@ export default function TahunAjaranPage() {
 
           <div className="ta-history-list">
             {LEMBAGA_LIST.map(l => {
-              const p = pimpinan[l];
-              const img = signatures[pimpinanTtdKey(l)] ?? null;
+              const p = getPimpinan(l);
+              const img = p.image;
               return (
                 <div key={l} className="ta-snap-card">
                   <div className="ta-snap-left">
                     <div className="ta-snap-year">{ROLE_LABEL[l]}</div>
                     <div className="muted" style={{fontSize:12.5}}>
-                      {p.nama || 'Belum diisi — kolom pada raport dibiarkan kosong'}
+                      {p.nama || 'Belum ditentukan — kolom pada raport tercetak bergaris titik'}
                     </div>
                     <div className="ta-snap-badges">
                       <span className={`badge ${img ? 'b-green' : 'b-amber'}`}>
@@ -420,13 +333,12 @@ export default function TahunAjaranPage() {
 
       {editLembaga && (
         <PimpinanModal
+          lembaga={editLembaga}
+          guruId={pimpinan[editLembaga]?.guruId ?? ''}
           gurus={gurus}
           signatures={signatures}
-          lembaga={editLembaga}
-          data={pimpinan[editLembaga]}
-          image={signatures[pimpinanTtdKey(editLembaga)] ?? null}
           onClose={() => setEditLembaga(null)}
-          onSave={payload => handleSavePimpinan(editLembaga, payload)}
+          onSave={guruId => handleSavePimpinan(editLembaga, guruId)}
         />
       )}
 
@@ -465,18 +377,25 @@ export default function TahunAjaranPage() {
               {LEMBAGA_LIST.map(l => (
                 <div className="form-row" key={l}>
                   <label>{ROLE_LABEL[l]} (opsional)</label>
-                  <input
+                  <select
                     className="form-input"
-                    placeholder={pimpinan[l].nama || `Nama ${ROLE_LABEL[l]}`}
                     value={newPimpinan[l]}
                     onChange={e => setNewPimpinan(prev => ({ ...prev, [l]: e.target.value }))}
-                  />
+                  >
+                    <option value="">
+                      {getPimpinan(l).nama
+                        ? `Tetap: ${getPimpinan(l).nama}`
+                        : '— belum ditentukan —'}
+                    </option>
+                    {gurus.map(g => <option key={g.id} value={g.id}>{g.nama}</option>)}
+                  </select>
                 </div>
               ))}
               <div style={{fontSize:12,color:'var(--muted)',marginTop:-4,marginBottom:16,lineHeight:1.6}}>
-                T.A. saat ini (<b>{currentTaLabel}</b>) akan tersimpan di arsip beserta
-                pemimpin &amp; tanda tangannya. Gambar tanda tangan terbawa ke T.A. baru —
-                ganti lewat kartu <b>Pemimpin Lembaga</b> bila pemimpinnya berbeda.
+                T.A. saat ini (<b>{currentTaLabel}</b>) tersimpan di arsip beserta nama dan
+                tanda tangan pemimpin yang berlaku saat ini — dibekukan, sehingga raport
+                T.A. lama tetap benar walau gurunya kelak berubah. Biarkan pilihan di atas
+                bila pemimpin T.A. baru masih sama.
               </div>
               <div className="form-actions">
                 <button type="button" className="btn ghost" onClick={() => setShowModal(false)}>Batal</button>

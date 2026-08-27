@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus, migrateWaliKelas,
-  normalizePimpinan, pimpinanTtdKey, PIMPINAN_DEFAULT, LEMBAGA_LIST } from '../lib/data';
+  normalizePimpinan, pimpinanTtdKey, PIMPINAN_DEFAULT, LEMBAGA_LIST, TTD_DEFAULT } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -380,36 +380,35 @@ export function StoreProvider({ children }) {
   }
 
   // ── Pemimpin lembaga (TPQ / Madin) ──────────────────────────────
-  /** Ubah nama dan/atau kalibrasi tanda tangan pemimpin satu lembaga. */
-  function updatePimpinan(lembaga, patch) {
-    setPimpinanState(prev => ({
-      ...prev,
-      [lembaga]: {
-        ...prev[lembaga],
-        ...patch,
-        ttd: { ...prev[lembaga].ttd, ...(patch.ttd ?? {}) },
-      },
-    }));
-  }
-
-  /** Simpan gambar tanda tangan pemimpin lembaga (data URL PNG). */
-  function setPimpinanSignature(lembaga, dataUrl) {
-    return setSignature(pimpinanTtdKey(lembaga), dataUrl);
-  }
-
-  function removePimpinanSignature(lembaga) {
-    return removeSignature(pimpinanTtdKey(lembaga));
+  /** Tunjuk guru sebagai pemimpin lembaga (string kosong = belum ditentukan). */
+  function setPimpinanGuru(lembaga, guruId) {
+    setPimpinanState(prev => ({ ...prev, [lembaga]: { ...prev[lembaga], guruId: guruId || '' } }));
   }
 
   /**
    * Data pemimpin siap pakai untuk raport: nama, kalibrasi, dan gambar.
-   * Saat melihat arsip, yang dipakai adalah data milik arsip tersebut.
+   *
+   * T.A. aktif membacanya langsung dari data guru yang ditunjuk, sehingga
+   * mengubah tanda tangan atau posisinya di menu Guru langsung ikut terpakai.
+   * Arsip memakai salinan yang dibekukan saat T.A. ditutup.
    */
   function getPimpinan(lembaga) {
-    const sumber = snap ? normalizePimpinan(snap.pimpinan) : pimpinan;
-    const data = sumber[lembaga] ?? { nama: '', ttd: {} };
-    const image = signatures[pimpinanTtdKey(lembaga, snap ? snap.id : null)] ?? null;
-    return { ...data, image };
+    if (snap) {
+      const beku = normalizePimpinan(snap.pimpinan)[lembaga];
+      return {
+        nama: beku.nama,
+        ttd: beku.ttd,
+        image: signatures[pimpinanTtdKey(lembaga, snap.id)] ?? null,
+      };
+    }
+    const guruId = pimpinan[lembaga]?.guruId;
+    const guru = guruId ? gurus.find(g => g.id === guruId) : null;
+    if (!guru) return { nama: '', ttd: { ...TTD_DEFAULT }, image: null };
+    return {
+      nama: guru.nama,
+      ttd: { ...TTD_DEFAULT, ...(guru.ttd ?? {}) },
+      image: signatures[guru.id] ?? null,
+    };
   }
 
   // Tahun ajaran
@@ -426,12 +425,16 @@ export function StoreProvider({ children }) {
       kenaikan,
       kenaikanTarget,
       locks,
-      pimpinan,
+      // Bekukan nama & kalibrasi pemimpin apa adanya saat ini
+      pimpinan: Object.fromEntries(LEMBAGA_LIST.map(l => {
+        const p = getPimpinan(l);
+        return [l, { guruId: pimpinan[l]?.guruId ?? '', nama: p.nama, ttd: p.ttd }];
+      })),
     };
-    // Bekukan gambar tanda tangan pemimpin ke kunci milik arsip, supaya
-    // raport T.A. lama tetap memakai tanda tangan yang berlaku saat itu.
+    // Bekukan pula gambar tanda tangannya ke kunci milik arsip, supaya raport
+    // T.A. lama tetap benar walau gurunya kelak berubah atau dihapus.
     for (const l of LEMBAGA_LIST) {
-      const img = signatures[pimpinanTtdKey(l)];
+      const img = getPimpinan(l).image;
       if (img) setSignature(pimpinanTtdKey(l, snapshot.id), img);
     }
     setHistory(prev => [...prev, snapshot]);
@@ -476,8 +479,7 @@ export function StoreProvider({ children }) {
 
       // Pemimpin lembaga per tahun ajaran
       pimpinan,
-      updatePimpinan,
-      setPimpinanSignature, removePimpinanSignature,
+      setPimpinanGuru,
       getPimpinan,
 
       // Sesi

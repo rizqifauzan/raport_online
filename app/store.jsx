@@ -1,6 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus, migrateWaliKelas } from '../lib/data';
+import { INITIAL_DATA, HISTORY_SEED, normalizeUsers, normalizeGurus, migrateWaliKelas,
+  normalizePimpinan, pimpinanTtdKey, PIMPINAN_DEFAULT, LEMBAGA_LIST } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -34,6 +35,8 @@ export function StoreProvider({ children }) {
   const [history, setHistory] = useState(HISTORY_SEED);
   const [viewingTaId, setViewingTaId] = useState(null);
   const [currentTaLabel, setCurrentTaLabel] = useState('2025/2026');
+  // Pemimpin TPQ / Madin untuk T.A. aktif (opsional; ikut tercetak di raport)
+  const [pimpinan, setPimpinanState] = useState(() => normalizePimpinan(PIMPINAN_DEFAULT));
 
   // ---------------------------------------------------------------
   // Mode penyimpanan
@@ -59,7 +62,7 @@ export function StoreProvider({ children }) {
   // sengaja dikecualikan — itu preferensi tampilan, bukan data.
   const persisted = {
     students, grades, kelas, ujian, ujianNilai, karakter,
-    kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus,
+    kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus, pimpinan,
   };
 
   // Hidrasi awal: tanyakan mode ke server, lalu muat data bila mode database.
@@ -104,6 +107,7 @@ export function StoreProvider({ children }) {
           setLocks(d.locks ?? {});
           setHistory(d.history ?? HISTORY_SEED);
           setCurrentTaLabel(d.currentTaLabel ?? '2025/2026');
+          setPimpinanState(normalizePimpinan(d.pimpinan));
         }
         // payload.data === null → database masih kosong; data seed yang
         // sedang tampil akan tersimpan otomatis sebagai isi awal.
@@ -190,7 +194,7 @@ export function StoreProvider({ children }) {
     return () => clearTimeout(saveTimerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbEnabled, students, grades, kelas, ujian, ujianNilai, karakter,
-      kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus]);
+      kenaikan, kenaikanTarget, locks, history, currentTaLabel, users, gurus, pimpinan]);
 
   function isLocked(kelasId, p) {
     return locks[kelasId]?.[p] === true;
@@ -375,8 +379,41 @@ export function StoreProvider({ children }) {
     }
   }
 
+  // ── Pemimpin lembaga (TPQ / Madin) ──────────────────────────────
+  /** Ubah nama dan/atau kalibrasi tanda tangan pemimpin satu lembaga. */
+  function updatePimpinan(lembaga, patch) {
+    setPimpinanState(prev => ({
+      ...prev,
+      [lembaga]: {
+        ...prev[lembaga],
+        ...patch,
+        ttd: { ...prev[lembaga].ttd, ...(patch.ttd ?? {}) },
+      },
+    }));
+  }
+
+  /** Simpan gambar tanda tangan pemimpin lembaga (data URL PNG). */
+  function setPimpinanSignature(lembaga, dataUrl) {
+    return setSignature(pimpinanTtdKey(lembaga), dataUrl);
+  }
+
+  function removePimpinanSignature(lembaga) {
+    return removeSignature(pimpinanTtdKey(lembaga));
+  }
+
+  /**
+   * Data pemimpin siap pakai untuk raport: nama, kalibrasi, dan gambar.
+   * Saat melihat arsip, yang dipakai adalah data milik arsip tersebut.
+   */
+  function getPimpinan(lembaga) {
+    const sumber = snap ? normalizePimpinan(snap.pimpinan) : pimpinan;
+    const data = sumber[lembaga] ?? { nama: '', ttd: {} };
+    const image = signatures[pimpinanTtdKey(lembaga, snap ? snap.id : null)] ?? null;
+    return { ...data, image };
+  }
+
   // Tahun ajaran
-  function archiveCurrentTa(newTaLabel) {
+  function archiveCurrentTa(newTaLabel, pimpinanBaru = null) {
     const snapshot = {
       id: `ta-${Date.now()}`,
       label: currentTaLabel,
@@ -389,8 +426,16 @@ export function StoreProvider({ children }) {
       kenaikan,
       kenaikanTarget,
       locks,
+      pimpinan,
     };
+    // Bekukan gambar tanda tangan pemimpin ke kunci milik arsip, supaya
+    // raport T.A. lama tetap memakai tanda tangan yang berlaku saat itu.
+    for (const l of LEMBAGA_LIST) {
+      const img = signatures[pimpinanTtdKey(l)];
+      if (img) setSignature(pimpinanTtdKey(l, snapshot.id), img);
+    }
     setHistory(prev => [...prev, snapshot]);
+    if (pimpinanBaru) setPimpinanState(normalizePimpinan(pimpinanBaru));
     setCurrentTaLabel(newTaLabel);
     setUjian([]);
     setUjianNilai({});
@@ -428,6 +473,12 @@ export function StoreProvider({ children }) {
       addGuru, updateGuru, removeGuru,
       signatures,
       setSignature, removeSignature,
+
+      // Pemimpin lembaga per tahun ajaran
+      pimpinan,
+      updatePimpinan,
+      setPimpinanSignature, removePimpinanSignature,
+      getPimpinan,
 
       // Sesi
       currentUser,

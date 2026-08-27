@@ -12,13 +12,14 @@ const STORAGE_KEY = 'raport-v3-settings-v3';
 
 // Teks tetap (tidak dapat diubah lewat panel)
 const KOTA = 'Magelang';
-const PIMPINAN = 'Muhlisun S.Th, I.';
+// Nama pemimpin diambil dari data tahun ajaran (halaman Tahun Ajaran).
+const PIMPINAN_FALLBACK = 'Muhlisun S.Th, I.';
 const JUDUL_PRAKTIK = 'UJIAN PRAKTIK';
 const JUDUL_KITABAH = 'UJIAN KITABAH';
-/** Tanda tangan wali kelas, diposisikan sesuai kalibrasi tiap guru. */
-function TtdWali({ guru, image }) {
-  if (!guru || !image) return null;
-  const ttd = guru.ttd ?? { x: 0, y: 0, scale: 100 };
+/** Tanda tangan, diposisikan sesuai kalibrasi pemiliknya. */
+function TtdImg({ ttd: kalibrasi, image }) {
+  if (!image) return null;
+  const ttd = kalibrasi ?? { x: 0, y: 0, scale: 100 };
   return (
     <img
       className="rv3-sign-img"
@@ -77,7 +78,7 @@ function RaportSheet({ student, layout, paper }) {
   const {
     periode, kelas: kelasList, students, ujian, ujianNilai,
     karakter, kenaikan, kenaikanTarget, currentTaLabel,
-    gurus, signatures,
+    gurus, signatures, getPimpinan,
   } = useStore();
 
   const sheetVars = {
@@ -96,6 +97,10 @@ function RaportSheet({ student, layout, paper }) {
   // Tanda tangan wali kelas diambil otomatis dari data guru
   const guruWali = findWaliKelasGuru(gurus, kelas);
   const ttdWali = guruWali ? signatures[guruWali.id] : null;
+
+  // Pemimpin lembaga untuk T.A. yang sedang ditampilkan (opsional)
+  const pimpinan = getPimpinan(kelas?.lembaga ?? 'TPQ');
+  const namaPimpinan = pimpinan.nama || PIMPINAN_FALLBACK;
 
   const kelasSiswa = useMemo(
     () => students.filter(s => s.kelasId === student.kelasId && s.status !== 'Lulus'),
@@ -308,13 +313,15 @@ function RaportSheet({ student, layout, paper }) {
         </div>
         <div className="rv3-sign">
           <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
-          <div className="rv3-sign-space"/>
-          <div className="rv3-sign-name">{PIMPINAN}</div>
+          <div className="rv3-sign-space">
+            <TtdImg ttd={pimpinan.ttd} image={pimpinan.image}/>
+          </div>
+          <div className="rv3-sign-name">{namaPimpinan}</div>
         </div>
         <div className="rv3-sign">
           <div className="rv3-sign-role">{ROLE_WALI}</div>
           <div className="rv3-sign-space">
-            <TtdWali guru={guruWali} image={ttdWali}/>
+            <TtdImg ttd={guruWali?.ttd} image={ttdWali}/>
           </div>
           <div className="rv3-sign-name">{guruWali?.nama ?? kelas?.wali ?? ''}</div>
         </div>

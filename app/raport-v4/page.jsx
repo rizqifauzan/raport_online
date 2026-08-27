@@ -12,7 +12,22 @@ const STORAGE_KEY = 'raport-v4-settings-v1';
 
 // Teks tetap (tidak dapat diubah lewat panel)
 const KOTA = 'Magelang';
-const PIMPINAN = 'Muhlisun S.Th, I.';
+// Nama pemimpin diambil dari data tahun ajaran (halaman Tahun Ajaran).
+const PIMPINAN_FALLBACK = 'Muhlisun S.Th, I.';
+
+/** Tanda tangan, diposisikan sesuai kalibrasi pemiliknya. */
+function TtdImg({ ttd: kalibrasi, image }) {
+  if (!image) return null;
+  const ttd = kalibrasi ?? { x: 0, y: 0, scale: 100 };
+  return (
+    <img
+      className="rv3-sign-img"
+      src={image}
+      alt=""
+      style={{ transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})` }}
+    />
+  );
+}
 const JUDUL_PRAKTIK = 'UJIAN PRAKTIK';
 const JUDUL_KITABAH = 'UJIAN KITABAH';
 const ROLE_ORTU = 'Orang Tua / Wali Santri';
@@ -62,7 +77,7 @@ const printStyle = (paper) => `
 function RaportSheet({ student, layout, paper, origin }) {
   const {
     periode, kelas: kelasList, students, ujian, ujianNilai,
-    karakter, kenaikan, kenaikanTarget, currentTaLabel,
+    karakter, kenaikan, kenaikanTarget, currentTaLabel, getPimpinan,
   } = useStore();
 
   const sheetVars = {
@@ -78,6 +93,10 @@ function RaportSheet({ student, layout, paper, origin }) {
   };
 
   const kelas = kelasList.find(k => k.id === student.kelasId) ?? null;
+
+  // Pemimpin lembaga untuk T.A. yang sedang ditampilkan (opsional)
+  const pimpinan = getPimpinan(kelas?.lembaga ?? 'TPQ');
+  const namaPimpinan = pimpinan.nama || PIMPINAN_FALLBACK;
 
   const kelasSiswa = useMemo(
     () => students.filter(s => s.kelasId === student.kelasId && s.status !== 'Lulus'),
@@ -293,8 +312,10 @@ function RaportSheet({ student, layout, paper, origin }) {
           </div>
           <div className="rv3-sign">
             <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
-            <div className="rv3-sign-space"/>
-            <div className="rv3-sign-name">{PIMPINAN}</div>
+            <div className="rv3-sign-space">
+              <TtdImg ttd={pimpinan.ttd} image={pimpinan.image}/>
+            </div>
+            <div className="rv3-sign-name">{namaPimpinan}</div>
           </div>
           <div className="rv3-sign">
             <div className="rv3-sign-role">{ROLE_WALI}</div>

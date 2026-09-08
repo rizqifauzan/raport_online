@@ -88,14 +88,6 @@ export default function DashboardPage() {
             <div className="crumb">T.A. {currentTaLabel} — {isHistory ? 'Mode Arsip' : 'Aktif'}</div>
           </div>
           <div className="spacer"/>
-          <div className="seg">
-            <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => setLembaga('TPQ')}>TPQ</button>
-            <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => setLembaga('Madin')}>Madin</button>
-          </div>
-          <div className="seg gold">
-            <button className={periode==='UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
-            <button className={periode==='UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
-          </div>
         </header>
 
         <div className="content">

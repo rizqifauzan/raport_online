@@ -7,7 +7,7 @@ import { getInitials, ROLES } from '../../lib/data';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbStatus, users, gurus, currentUser, logout } = useStore();
+  const { students, periode, setPeriode, lembaga, setLembaga, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbStatus, users, gurus, currentUser, logout } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
 
@@ -67,6 +67,16 @@ export default function Sidebar() {
           Data Siswa
           <span className="pill">{totalSantri}</span>
         </Link>
+        <div className="nav-switch">
+          <div className="nav-seg">
+            <button className={lembaga === 'TPQ' ? 'on' : ''} onClick={() => setLembaga('TPQ')}>TPQ</button>
+            <button className={lembaga === 'Madin' ? 'on' : ''} onClick={() => setLembaga('Madin')}>Madin</button>
+          </div>
+          <div className="nav-seg gold">
+            <button className={periode === 'UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
+            <button className={periode === 'UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
+          </div>
+        </div>
         <Link href="/siswa-kelas" className={active('/siswa-kelas')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="9" cy="8" r="3.2"/>

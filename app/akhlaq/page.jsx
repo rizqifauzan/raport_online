@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
@@ -22,17 +22,19 @@ export default function AkhlaqPage() {
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
+
+  // Kelas aktif mengikuti pilihan lembaga di sidebar.
+  useEffect(() => {
+    if (!kelasList.some(k => k.id === activeKelasId)) {
+      setActiveKelasId(kelasList[0]?.id ?? '');
+    }
+  }, [kelasList, activeKelasId]);
   const [savedAt, setSavedAt] = useState(null);
   const [confirmUnlock, setConfirmUnlock] = useState(false);
 
   const activeKelas = kelas.find(k => k.id === activeKelasId);
   const kelasSiswa = useMemo(() => students.filter(s => s.kelasId === activeKelasId), [students, activeKelasId]);
 
-  const handleLembaga = (l) => {
-    setLembaga(l);
-    const newKelas = kelas.filter(k => k.lembaga === l);
-    setActiveKelasId(newKelas[0]?.id ?? '');
-  };
 
   const locked = !isHistory && locks[activeKelasId]?.[periode] === true;
 
@@ -102,14 +104,6 @@ export default function AkhlaqPage() {
             <div className="crumb">Penilaian kepribadian &amp; kehadiran santri</div>
           </div>
           <div className="spacer"/>
-          <div className="seg">
-            <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => handleLembaga('TPQ')}>TPQ</button>
-            <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => handleLembaga('Madin')}>Madin</button>
-          </div>
-          <div className="seg gold">
-            <button className={periode==='UTS' ? 'on' : ''} onClick={() => setPeriode('UTS')}>UTS</button>
-            <button className={periode==='UAS' ? 'on' : ''} onClick={() => setPeriode('UAS')}>UAS</button>
-          </div>
 
         </header>
 

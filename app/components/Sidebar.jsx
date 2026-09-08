@@ -7,7 +7,7 @@ import { getInitials, ROLES } from '../../lib/data';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbEnabled, dbStatus, users, gurus, currentUser, logout } = useStore();
+  const { students, periode, isHistory, history, currentTaLabel, viewingTaId, setViewingTa, dbStatus, users, gurus, currentUser, logout } = useStore();
   const totalSantri = students.length;
   const [taOpen, setTaOpen] = useState(false);
 
@@ -15,26 +15,23 @@ export default function Sidebar() {
 
   const viewingSnap = viewingTaId ? history.find(h => h.id === viewingTaId) : null;
 
-  // Indikator mode penyimpanan (Neon vs memori)
+  // Indikator penyimpanan. Aplikasi selalu tersambung database — tidak ada
+  // lagi mode demo — jadi yang ditampilkan hanya keadaan sambungannya.
   const dbTone =
     dbStatus === 'error' ? 'is-error'
-    : dbEnabled === true ? 'is-live'
-    : dbEnabled === false ? 'is-demo'
-    : 'is-idle';
+    : dbStatus === 'loading' ? 'is-idle'
+    : 'is-live';
   const dbLabel =
     dbStatus === 'error' ? 'Database bermasalah'
-    : dbEnabled === true ? (dbStatus === 'saving' ? 'Menyimpan…' : 'Tersimpan di database')
-    : dbEnabled === false ? 'Mode demo'
-    : 'Memeriksa…';
-  const dbTitle =
-    dbEnabled === true
-      ? 'Terhubung ke Neon — perubahan tersimpan permanen.'
-      : dbEnabled === false
-        ? 'DATABASE_URL belum di-set — data hanya di memori dan hilang saat refresh.'
-        : 'Memeriksa mode penyimpanan…';
-  const dbTitleFinal = dbStatus === 'error'
-    ? 'Database tidak bisa diakses — perubahan tidak tersimpan. Cek DATABASE_URL.'
-    : dbTitle;
+    : dbStatus === 'loading' ? 'Memuat…'
+    : dbStatus === 'saving' ? 'Menyimpan…'
+    : 'Tersimpan di database';
+  const dbTitleFinal =
+    dbStatus === 'error'
+      ? 'Database tidak bisa diakses — perubahan tidak tersimpan. Cek DATABASE_URL.'
+      : dbStatus === 'loading'
+        ? 'Memuat data dari database…'
+        : 'Terhubung ke Neon — perubahan tersimpan permanen.';
 
   return (
     <aside className="sidebar">

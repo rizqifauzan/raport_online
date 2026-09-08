@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
-import { MAPEL, calcNilaiAkhir, getInitials } from '../../lib/data';
+import { calcNilaiAkhir, getInitials } from '../../lib/data';
 
 const COLORS = ['#0d9488','#7c3aed','#2563eb','#16a34a','#d4a056','#dc2626','#0891b2','#9333ea'];
 const PER_PAGE = 7;
@@ -22,8 +22,8 @@ function generateNIS(students) {
 }
 
 export default function SiswaPage() {
-  const { lembaga, setLembaga, students, grades, kelas, addStudent, removeStudent, addClass, updateClass, removeClass, gurus } = useStore();
-  const mapelList = MAPEL[lembaga];
+  const { lembaga, setLembaga, students, grades, mapel, kelas, addStudent, removeStudent, addClass, updateClass, removeClass, gurus } = useStore();
+  const mapelList = mapel[lembaga] ?? [];
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');

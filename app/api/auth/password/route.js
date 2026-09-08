@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * POST /api/auth/password — { password } → { passwordHash }
  *
  * Hashing dikerjakan di server supaya parameter dan algoritmanya satu pintu.
- * Hash yang dikembalikan disimpan admin ke dalam data pengguna lewat /api/state.
+ * Hash yang dikembalikan disimpan admin ke dalam data pengguna lewat /api/mutate.
  * Hanya admin yang boleh memanggilnya.
  */
 export async function POST(request) {

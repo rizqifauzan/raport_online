@@ -3,11 +3,11 @@ import { useState, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
-import { MAPEL, calcRata, getInitials, getPredikat } from '../../lib/data';
+import { calcRata, getInitials, getPredikat } from '../../lib/data';
 
 export default function RaportPage() {
-  const { lembaga, setLembaga, periode, setPeriode, students, grades, kelas: kelasList } = useStore();
-  const mapelList = MAPEL[lembaga];
+  const { lembaga, setLembaga, periode, setPeriode, students, grades, mapel, kelas: kelasList } = useStore();
+  const mapelList = mapel[lembaga] ?? [];
 
   const [activeKelasId, setActiveKelasId] = useState('tpq-3');
   const [activeStudentId, setActiveStudentId] = useState('24302');

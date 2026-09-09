@@ -1,7 +1,7 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { normalizeUsers, normalizeGurus, migrateWaliKelas, normalizePimpinan,
-  pimpinanTtdKey, PIMPINAN_DEFAULT, TTD_DEFAULT } from '../lib/data';
+  periodeAwal, pimpinanTtdKey, PIMPINAN_DEFAULT, TTD_DEFAULT } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -45,6 +45,9 @@ export function StoreProvider({ children }) {
 
   const mutasiBerjalan = useRef(0);
   const timerKetik = useRef({});
+  // Periode bawaan hanya ditentukan sekali; sesudah itu pilihan pemakai yang
+  // berlaku, supaya tab tidak melompat sendiri sementara nilai sedang diisi.
+  const periodeSudahDitentukan = useRef(false);
 
   const snap = viewingTaId ? (history.find(h => h.id === viewingTaId) ?? null) : null;
 
@@ -85,8 +88,15 @@ export function StoreProvider({ children }) {
     let dibatalkan = false;
     (async () => {
       try {
-        await muatState();
-        if (!dibatalkan) { setDbStatus('idle'); setDbError(null); }
+        const payload = await muatState();
+        if (!dibatalkan) {
+          if (payload.data && !periodeSudahDitentukan.current) {
+            periodeSudahDitentukan.current = true;
+            setPeriode(periodeAwal(payload.data));
+          }
+          setDbStatus('idle');
+          setDbError(null);
+        }
       } catch (err) {
         console.error('[store] gagal memuat data:', err);
         if (!dibatalkan) {

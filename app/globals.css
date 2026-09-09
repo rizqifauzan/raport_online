@@ -147,6 +147,21 @@ button { font-family: inherit; cursor: pointer; }
   padding: 1px 7px; border-radius: 20px; letter-spacing:.3px;
 }
 
+/* Switch lembaga / periode di dalam sidebar */
+.nav-switch { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px 10px; }
+.nav-seg {
+  display: flex; background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.10); border-radius: 10px; padding: 3px; gap: 3px;
+}
+.nav-seg button {
+  flex: 1; border: 0; background: transparent; color: #b8ddd6;
+  font-weight: 700; font-size: 12px; padding: 6px 8px; border-radius: 7px;
+  cursor: pointer; transition: .15s;
+}
+.nav-seg button:hover { color: #fff; background: rgba(255,255,255,.06); }
+.nav-seg button.on { background: rgba(255,255,255,.16); color: #fff; }
+.nav-seg.gold button.on { background: rgba(251,191,36,.18); color: #fcd34d; }
+
 .sidebar .foot {
   margin-top: auto; position: relative;
   border-top: 1px solid rgba(255,255,255,.08);

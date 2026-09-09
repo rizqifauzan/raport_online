@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
@@ -27,6 +27,16 @@ export default function SiswaPage() {
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
+
+  // Kelas aktif mengikuti pilihan lembaga di sidebar.
+  useEffect(() => {
+    if (!kelasList.some(k => k.id === activeKelasId)) {
+      setActiveKelasId(kelasList[0]?.id ?? '');
+      setSearch('');
+      setSelected(new Set());
+      setPage(1);
+    }
+  }, [kelasList, activeKelasId]);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(new Set());
   const [page, setPage] = useState(1);
@@ -35,13 +45,6 @@ export default function SiswaPage() {
   const [toast, setToast] = useState('');
 
   // Switch lembaga → reset kelas & halaman
-  const handleLembaga = (l) => {
-    const newKelas = kelas.filter(k => k.lembaga === l);
-    setActiveKelasId(newKelas[0]?.id ?? '');
-    setSearch('');
-    setSelected(new Set());
-    setPage(1);
-  };
 
   const activeKelas = kelas.find(k => k.id === activeKelasId);
 
@@ -183,10 +186,6 @@ export default function SiswaPage() {
             <div className="crumb">Kelola data santri per lembaga</div>
           </div>
           <div className="spacer"/>
-          <div className="seg">
-            <button className={lembaga==='TPQ' ? 'on' : ''} onClick={() => { setLembaga('TPQ'); handleLembaga('TPQ'); }}>TPQ</button>
-            <button className={lembaga==='Madin' ? 'on' : ''} onClick={() => { setLembaga('Madin'); handleLembaga('Madin'); }}>Madin</button>
-          </div>
 
           <button className="icon-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">

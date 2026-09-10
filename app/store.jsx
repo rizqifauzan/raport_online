@@ -554,6 +554,24 @@ export function StoreProvider({ children }) {
     return hasil;
   }
 
+  /**
+   * Betulkan label T.A. yang sedang aktif (mis. salah ketik "2025/2026").
+   *
+   * Hanya labelnya; datanya tidak bergerak ke mana pun. Label lokal diubah
+   * duluan supaya tampilan langsung ikut, lalu dikembalikan bila server
+   * menolak.
+   */
+  async function renameCurrentTa(newTaLabel) {
+    const label = String(newTaLabel ?? '').trim();
+    if (!label || label === currentTaLabel) return { ok: true };
+    const sebelum = currentTaLabel;
+    setCurrentTaLabel(label);
+    return kirim(
+      { entity: 'ta', action: 'rename', label },
+      () => setCurrentTaLabel(sebelum),
+    );
+  }
+
   return (
     <Store.Provider value={{
       lembaga, setLembaga,
@@ -615,6 +633,7 @@ export function StoreProvider({ children }) {
       history,
       currentTaLabel,
       archiveCurrentTa,
+      renameCurrentTa,
 
       // Status penyimpanan
       dbStatus,    // 'loading' | 'idle' | 'saving' | 'error'

@@ -110,7 +110,7 @@ function PimpinanModal({ lembaga, guruId, gurus, signatures, onClose, onSave }) 
 
 export default function TahunAjaranPage() {
   const {
-    currentTaLabel, history, archiveCurrentTa,
+    currentTaLabel, history, archiveCurrentTa, renameCurrentTa,
     students, kelas, ujian, kenaikan,
     isHistory, viewingTaId, setViewingTa,
     pimpinan, setPimpinanGuru, getPimpinan, signatures, gurus,
@@ -118,6 +118,11 @@ export default function TahunAjaranPage() {
 
   const [showModal, setShowModal] = useState(false);
   const [newLabel, setNewLabel] = useState('');
+  // Ubah label T.A. berjalan (bukan pindah T.A.)
+  const [showRename, setShowRename] = useState(false);
+  const [renameLabel, setRenameLabel] = useState('');
+  const [renameBusy, setRenameBusy] = useState(false);
+  const [renameError, setRenameError] = useState('');
   // Pemimpin untuk T.A. baru: id guru; kosong = ikut yang sekarang
   const [newPimpinan, setNewPimpinan] = useState({ TPQ: '', Madin: '' });
   const [toast, setToast] = useState('');
@@ -142,6 +147,30 @@ export default function TahunAjaranPage() {
   function openArchiveModal() {
     setNewPimpinan({ TPQ: pimpinan.TPQ.nama, Madin: pimpinan.Madin.nama });
     setShowModal(true);
+  }
+
+  function openRenameModal() {
+    setRenameLabel(currentTaLabel);
+    setRenameError('');
+    setShowRename(true);
+  }
+
+  /** Betulkan label T.A. berjalan — data tidak berpindah, hanya namanya. */
+  async function handleRename(e) {
+    e.preventDefault();
+    const label = renameLabel.trim();
+    if (!label) return;
+    if (label === currentTaLabel) { setShowRename(false); return; }
+    setRenameBusy(true);
+    setRenameError('');
+    const hasil = await renameCurrentTa(label);
+    setRenameBusy(false);
+    if (!hasil.ok) {
+      setRenameError(hasil.error || 'Gagal menyimpan.');
+      return;
+    }
+    setShowRename(false);
+    showToast(`Tahun ajaran aktif kini T.A. ${label}`);
   }
 
   /** Simpan nama, kalibrasi, dan gambar tanda tangan pemimpin satu lembaga. */
@@ -196,7 +225,20 @@ export default function TahunAjaranPage() {
 
           <div className="ta-active-card">
             <div className="ta-badge-active">Aktif</div>
-            <div className="ta-label">T.A. {currentTaLabel}</div>
+            <div className="row" style={{alignItems:'center',gap:8}}>
+              <div className="ta-label">T.A. {currentTaLabel}</div>
+              <button
+                className="icon-btn"
+                title="Ubah label tahun ajaran"
+                aria-label="Ubah label tahun ajaran"
+                onClick={openRenameModal}
+                disabled={isHistory}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4z"/>
+                </svg>
+              </button>
+            </div>
             <div className="ta-stats-row">
               <div className="ta-stat">
                 <div className="ts-val">{activeStats.totalSiswa}</div>
@@ -340,6 +382,49 @@ export default function TahunAjaranPage() {
           onClose={() => setEditLembaga(null)}
           onSave={guruId => handleSavePimpinan(editLembaga, guruId)}
         />
+      )}
+
+      {/* Modal ubah label T.A. berjalan */}
+      {showRename && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowRename(false)}>
+          <div className="modal" style={{maxWidth:440}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <h3 style={{margin:0}}>Ubah Tahun Ajaran Aktif</h3>
+              <button className="icon-btn" onClick={() => setShowRename(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleRename}>
+              <div className="form-row">
+                <label>Label T.A. *</label>
+                <input
+                  className="form-input"
+                  placeholder="cth. 2025/2026"
+                  value={renameLabel}
+                  onChange={e => setRenameLabel(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <div style={{fontSize:12,color:'var(--muted)',marginTop:-4,marginBottom:16,lineHeight:1.6}}>
+                Hanya labelnya yang berubah — santri, kelas, ujian, nilai, dan arsip
+                tetap di tempatnya. Pakai ini untuk membetulkan salah ketik; untuk
+                berpindah ke tahun ajaran berikutnya gunakan <b>Tutup T.A. Ini</b>.
+              </div>
+              {renameError && (
+                <div style={{background:'var(--red-soft)',color:'var(--red)',padding:'10px 12px',
+                  borderRadius:'var(--r-sm)',fontSize:13,fontWeight:600,marginBottom:16}}>{renameError}</div>
+              )}
+              <div className="form-actions">
+                <button type="button" className="btn ghost" onClick={() => setShowRename(false)} disabled={renameBusy}>Batal</button>
+                <button type="submit" className="btn primary" disabled={renameBusy}>
+                  {renameBusy ? 'Menyimpan…' : 'Simpan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* Modal tutup T.A. */}

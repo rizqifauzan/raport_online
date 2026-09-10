@@ -168,6 +168,17 @@ async function jalankan(entity, action, b, taId) {
       const hasil = await db.arsipkanTa(b.label.trim(), b.pimpinan ?? null);
       return { data: hasil };
     }
+    case "ta.rename": {
+      if (typeof b.label !== "string" || !b.label.trim()) {
+        return { tolak: "Label tahun ajaran wajib diisi.", status: 400 };
+      }
+      const label = b.label.trim();
+      if (await db.labelTaDipakaiLain(label)) {
+        return { tolak: `Tahun ajaran "${label}" sudah ada di arsip.`, status: 409 };
+      }
+      const hasil = await db.ubahLabelTa(label);
+      return { data: hasil };
+    }
 
     default:
       return { tolak: `Aksi tidak dikenal: ${entity}.${action}`, status: 400 };

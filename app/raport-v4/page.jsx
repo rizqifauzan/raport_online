@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
-import { namaCetak } from '../../lib/data';
+import { namaCetak, labelKelasInline } from '../../lib/data';
 
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -292,12 +292,19 @@ function RaportSheet({ student, layout, paper, origin }) {
         </div>
       </div>
 
-      {/* KEPUTUSAN */}
-      <div className="rv3-keputusan">
-        <h4>KEPUTUSAN</h4>
-        <div className="rv3-kep-line">Dengan memperhatikan hasil yang di capai pada tahun ajaran ini, maka santri ini di tetapkan:</div>
-        <div className="rv3-kep-decision">{keputusanText()}</div>
-      </div>
+      {/* PENUTUP: UTS memakai teks penutup, UAS memakai keputusan kenaikan */}
+      {periode === 'UTS' ? (
+        <div className="rv3-keputusan rv3-penutup">
+          <div className="rv3-kep-line">Demikian Ujian Semester Satu.</div>
+          <div className="rv3-kep-line">Dengan melihat hasil yang di capai pada kelas {labelKelasInline(kelas?.label)}.</div>
+        </div>
+      ) : (
+        <div className="rv3-keputusan">
+          <h4>KEPUTUSAN</h4>
+          <div className="rv3-kep-line">Dengan memperhatikan hasil yang di capai pada tahun ajaran ini, maka santri ini di tetapkan:</div>
+          <div className="rv3-kep-decision">{keputusanText()}</div>
+        </div>
+      )}
 
       {/* Tanggal & tanda tangan (QR di kolom Wali Kelas) */}
       <div className="rv4-foot">

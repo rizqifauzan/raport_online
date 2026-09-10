@@ -868,6 +868,7 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .rv3-keputusan h4 { margin:0 0 7px; font-weight:700; font-size: calc(var(--rv3-fs) + 1.5px); letter-spacing:1px; }
 .rv3-kep-line { font-size: var(--rv3-fs); }
 .rv3-kep-decision { font-weight:700; font-size: calc(var(--rv3-fs) + 1.5px); margin-top:3px; }
+.rv3-penutup .rv3-kep-line + .rv3-kep-line { margin-top:2px; }
 
 .rv3-date { text-align:center; font-size: var(--rv3-fs); margin-top:18px; }
 .rv3-date.push { margin-top: var(--rv3-sec-gap); }

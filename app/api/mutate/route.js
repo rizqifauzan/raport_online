@@ -133,6 +133,9 @@ async function jalankan(entity, action, b, taId) {
     case "ujian.create": await db.tambahUjian(taId, b.data); return null;
     case "ujian.update": await db.ubahUjian(taId, b.id, b.patch ?? {}); return null;
     case "ujian.delete": await db.hapusUjian(taId, b.id); return null;
+    case "ujian.reorder":
+      await db.urutkanUjian(taId, b.kelasId, b.periode, Array.isArray(b.ids) ? b.ids : []);
+      return null;
 
     // ── Guru ─────────────────────────────────────────────────────────────
     case "guru.create": await db.tambahGuru(b.data); return null;

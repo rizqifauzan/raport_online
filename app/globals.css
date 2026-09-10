@@ -1328,3 +1328,12 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
    terbaca meskipun tanda tangan meluber melewati kotaknya. */
 .rv3-sign-role,
 .rv3-sign-name { position: relative; z-index: 1; }
+
+/* ── Baris tabel yang bisa diurutkan dengan drag and drop ─────────────────
+   Dipakai daftar Mapel Ujian; urutan barisnya menentukan susunan mapel di
+   lembar cetak raport. */
+.drag-row { cursor: grab; }
+.drag-row.dragging { opacity: .45; cursor: grabbing; }
+.drag-row.drag-over td { box-shadow: inset 0 2px 0 var(--brand); }
+.tbl td.drag-handle { padding-left: 10px; padding-right: 0; color: var(--muted, #94a3b8); }
+.tbl td.drag-handle svg { width: 16px; height: 16px; display: block; }

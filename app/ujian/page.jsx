@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 export default function UjianPage() {
-  const { lembaga, setLembaga, periode, setPeriode, kelas, ujian, ujianNilai, addUjian, removeUjian, updateUjian } = useStore();
+  const { lembaga, setLembaga, periode, setPeriode, kelas, ujian, ujianNilai, addUjian, removeUjian, updateUjian, reorderUjian } = useStore();
 
   const kelasList = kelas.filter(k => k.lembaga === lembaga);
   const [activeKelasId, setActiveKelasId] = useState(kelasList[0]?.id ?? '');
@@ -68,6 +68,46 @@ export default function UjianPage() {
     setShowModal(false);
   }
 
+  // ── Urutkan dengan drag and drop ────────────────────────────────────────
+  // Urutan di sini dipakai apa adanya saat cetak raport, jadi baris yang
+  // digeser langsung menentukan susunan mapel di lembar raport.
+  const [dragId, setDragId] = useState(null);
+  const [overId, setOverId] = useState(null);
+
+  function handleDragStart(e, id) {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Firefox baru mengaktifkan drag kalau ada data yang dibawa.
+    e.dataTransfer.setData('text/plain', id);
+  }
+
+  function handleDragOver(e, id) {
+    if (!dragId || id === dragId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOverId(id);
+  }
+
+  function handleDrop(e, id) {
+    e.preventDefault();
+    const asal = dragId;
+    setDragId(null);
+    setOverId(null);
+    if (!asal || asal === id) return;
+    const ids = ujianKelas.map(u => u.id);
+    const dari = ids.indexOf(asal);
+    const ke = ids.indexOf(id);
+    if (dari < 0 || ke < 0) return;
+    ids.splice(ke, 0, ids.splice(dari, 1)[0]);
+    reorderUjian(activeKelasId, periode, ids);
+    showToast('Urutan mapel diperbarui');
+  }
+
+  function handleDragEnd() {
+    setDragId(null);
+    setOverId(null);
+  }
+
   function handleDelete(u) {
     const hasNilai = ujianNilai[u.id] && Object.keys(ujianNilai[u.id]).length > 0;
     if (hasNilai) {
@@ -126,6 +166,11 @@ export default function UjianPage() {
               <div style={{fontWeight:800,fontSize:15}}>
                 {lembaga} · {activeKelas?.label}
                 <span className="muted" style={{fontWeight:600}}> — {ujianKelas.length} ujian</span>
+                {ujianKelas.length > 1 && (
+                  <div className="muted" style={{fontWeight:600,fontSize:12,marginTop:2}}>
+                    Tarik baris untuk mengurutkan — urutan ini dipakai saat cetak raport
+                  </div>
+                )}
               </div>
               <div className="spacer"/>
               <button className="btn sm" onClick={openAdd}>
@@ -148,6 +193,7 @@ export default function UjianPage() {
               <table className="tbl">
                 <thead>
                   <tr>
+                    <th style={{width:34}}></th>
                     <th style={{width:44}}>No</th>
                     <th>Nama Ujian</th>
                     <th style={{width:120}}>Tipe</th>
@@ -158,7 +204,21 @@ export default function UjianPage() {
                   {ujianKelas.map((u, i) => {
                     const hasNilai = ujianNilai[u.id] && Object.keys(ujianNilai[u.id]).length > 0;
                     return (
-                      <tr key={u.id}>
+                      <tr
+                        key={u.id}
+                        draggable
+                        onDragStart={e => handleDragStart(e, u.id)}
+                        onDragOver={e => handleDragOver(e, u.id)}
+                        onDragLeave={() => setOverId(o => (o === u.id ? null : o))}
+                        onDrop={e => handleDrop(e, u.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`drag-row${dragId === u.id ? ' dragging' : ''}${overId === u.id ? ' drag-over' : ''}`}
+                      >
+                        <td className="drag-handle" title="Tarik untuk mengurutkan">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                            <path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01"/>
+                          </svg>
+                        </td>
                         <td className="num muted">{i + 1}</td>
                         <td><b>{u.nama}</b></td>
                         <td>

@@ -283,6 +283,29 @@ export function StoreProvider({ children }) {
     kirim({ entity: 'ujian', action: 'update', id, patch }, () => setUjian(sebelum));
   }
 
+  /**
+   * Susun ulang urutan ujian satu kelas pada satu periode (drag and drop).
+   *
+   * `ids` adalah urutan baru kelompok itu. Di state lokal anggotanya ditaruh
+   * kembali pada posisi-posisi yang tadi mereka tempati, jadi ujian kelas lain
+   * tidak ikut bergeser — sama seperti yang dikerjakan server.
+   */
+  function reorderUjian(kelasId, periode, ids) {
+    if (snap) return;
+    const sebelum = ujian;
+    setUjian(prev => {
+      const posisi = [];
+      prev.forEach((u, i) => { if (u.kelasId === kelasId && u.periode === periode) posisi.push(i); });
+      const peta = new Map(prev.map(u => [u.id, u]));
+      const urut = ids.map(id => peta.get(id)).filter(u => u && u.kelasId === kelasId && u.periode === periode);
+      for (const i of posisi) if (!urut.includes(prev[i])) urut.push(prev[i]);
+      const hasil = [...prev];
+      posisi.forEach((i, k) => { hasil[i] = urut[k]; });
+      return hasil;
+    });
+    kirim({ entity: 'ujian', action: 'reorder', kelasId, periode, ids }, () => setUjian(sebelum));
+  }
+
   // ── Nilai ujian — dijaga kunci kelas ────────────────────────────────────
 
   function setUjianNilaiEntry(ujianId, studentId, nilai) {
@@ -577,7 +600,7 @@ export function StoreProvider({ children }) {
       addStudent, removeStudent, updateStudent,
       updateGrade,
       addClass, updateClass, removeClass,
-      addUjian, removeUjian, updateUjian,
+      addUjian, removeUjian, updateUjian, reorderUjian,
       setUjianNilaiEntry,
       updateKarakter,
       setKenaikanEntry, setKenaikanTarget, resetKenaikan,

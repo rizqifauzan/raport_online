@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
-import { findWaliKelasGuru, namaCetak } from '../../lib/data';
+import { findWaliKelasGuru, namaCetak, labelKelasInline } from '../../lib/data';
 
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -297,7 +297,7 @@ function RaportSheet({ student, layout, paper }) {
       {periode === 'UTS' ? (
         <div className="rv3-keputusan rv3-penutup">
           <div className="rv3-kep-line">Demikian Ujian Semester Satu.</div>
-          <div className="rv3-kep-line">Dengan melihat hasil yang di capai pada kelas {kelas?.label ?? '—'}.</div>
+          <div className="rv3-kep-line">Dengan melihat hasil yang di capai pada kelas {labelKelasInline(kelas?.label)}.</div>
         </div>
       ) : (
         <div className="rv3-keputusan">

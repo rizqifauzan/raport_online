@@ -292,12 +292,19 @@ function RaportSheet({ student, layout, paper, origin }) {
         </div>
       </div>
 
-      {/* KEPUTUSAN */}
-      <div className="rv3-keputusan">
-        <h4>KEPUTUSAN</h4>
-        <div className="rv3-kep-line">Dengan memperhatikan hasil yang di capai pada tahun ajaran ini, maka santri ini di tetapkan:</div>
-        <div className="rv3-kep-decision">{keputusanText()}</div>
-      </div>
+      {/* PENUTUP: UTS memakai teks penutup, UAS memakai keputusan kenaikan */}
+      {periode === 'UTS' ? (
+        <div className="rv3-keputusan rv3-penutup">
+          <div className="rv3-kep-line">Demikian Ujian Semester Satu.</div>
+          <div className="rv3-kep-line">Dengan melihat hasil yang di capai pada kelas {kelas?.label ?? '—'}.</div>
+        </div>
+      ) : (
+        <div className="rv3-keputusan">
+          <h4>KEPUTUSAN</h4>
+          <div className="rv3-kep-line">Dengan memperhatikan hasil yang di capai pada tahun ajaran ini, maka santri ini di tetapkan:</div>
+          <div className="rv3-kep-decision">{keputusanText()}</div>
+        </div>
+      )}
 
       {/* Tanggal & tanda tangan (QR di kolom Wali Kelas) */}
       <div className="rv4-foot">

@@ -1328,3 +1328,13 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
    terbaca meskipun tanda tangan meluber melewati kotaknya. */
 .rv3-sign-role,
 .rv3-sign-name { position: relative; z-index: 1; }
+
+/* Nilai di bawah 60 ditandai merah — juga saat dicetak */
+.rv3-tbl td.nilai.kurang,
+table.rapor td.kurang,
+td.kurang {
+  color: #b91c1c;
+  font-weight: 800;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}

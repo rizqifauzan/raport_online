@@ -4,6 +4,13 @@ import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 function scoreClass(v) { return v >= 85 ? 'hi' : v >= 75 ? 'mid' : 'lo'; }
+// Nilai di bawah 60 ditandai merah (angka saja; nilai kustom/teks diabaikan).
+const KKM_MERAH = 60;
+function isNilaiKurang(v) {
+  if (v == null || v === '') return false;
+  const n = Number(v);
+  return Number.isFinite(n) && n < KKM_MERAH;
+}
 
 export default function InputNilaiPage() {
   const { lembaga, setLembaga, periode, setPeriode, kelas, students, ujian, ujianNilai, setUjianNilaiEntry, locks, lockKelas, unlockKelas, isHistory } = useStore();
@@ -259,7 +266,9 @@ export default function InputNilaiPage() {
                                   min={isKustom ? undefined : 0}
                                   max={isKustom ? undefined : 100}
                                   disabled={locked || isHistory}
-                                  style={isKustom ? {textAlign:'left',paddingLeft:8,fontSize:12} : {}}
+                                  style={isKustom
+                                    ? {textAlign:'left',paddingLeft:8,fontSize:12}
+                                    : (isNilaiKurang(val) ? {color:'#b91c1c',fontWeight:800} : {})}
                                   onBlur={e => {
                                     if (locked || isHistory) return;
                                     if (!isKustom && e.target.value !== '') {
@@ -288,12 +297,17 @@ export default function InputNilaiPage() {
                       {ujianOrdered.map(u => {
                         const avg = u.tipe !== 'Kustom' ? getColAvg(u.id) : null;
                         return (
-                          <td key={u.id} style={{textAlign:'center',color:'var(--brand-700)'}}>
+                          <td key={u.id} style={{textAlign:'center',color: isNilaiKurang(avg) ? '#b91c1c' : 'var(--brand-700)'}}>
                             {avg ?? (u.tipe === 'Kustom' ? <span className="muted" style={{fontSize:11}}>—</span> : '—')}
                           </td>
                         );
                       })}
-                      <td style={{textAlign:'center',color:'var(--brand-700)',fontSize:14}}>{getKelasNilaiAkhir() ?? '—'}</td>
+                      {(() => {
+                        const kelasAkhir = getKelasNilaiAkhir();
+                        return (
+                          <td style={{textAlign:'center',color: isNilaiKurang(kelasAkhir) ? '#b91c1c' : 'var(--brand-700)',fontSize:14}}>{kelasAkhir ?? '—'}</td>
+                        );
+                      })()}
                     </tr>
                   </tfoot>
                 </table>

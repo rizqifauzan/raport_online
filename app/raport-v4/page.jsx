@@ -6,6 +6,19 @@ import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 import { namaCetak, labelKelasInline } from '../../lib/data';
 
+// Nilai di bawah 60 ditandai merah (angka saja; nilai teks/kustom diabaikan).
+const KKM_MERAH = 60;
+function isNilaiKurang(v) {
+  if (v == null || v === '') return false;
+  const n = Number(v);
+  return Number.isFinite(n) && n < KKM_MERAH;
+}
+// Rata-rata dibulatkan maksimal 1 angka di belakang koma (75 tetap 75, bukan 75.0).
+function fmtRata(n) {
+  if (n == null || !Number.isFinite(n)) return '';
+  return String(Math.round(n * 10) / 10);
+}
+
 const HARI  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 const BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -196,7 +209,7 @@ function RaportSheet({ student, layout, paper, origin }) {
               <tr key={`p-${i}`}>
                 <td className="no">{i + 1}</td>
                 <td>{u?.nama ?? ''}</td>
-                <td className="nilai">{val ?? ''}</td>
+                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{val ?? ''}</td>
               </tr>
             );
           })}
@@ -221,7 +234,7 @@ function RaportSheet({ student, layout, paper, origin }) {
               <tr key={`k-${i}`}>
                 <td className="no">{i + 1}</td>
                 <td>{u?.nama ?? ''}</td>
-                <td className="nilai">{val ?? ''}</td>
+                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{val ?? ''}</td>
               </tr>
             );
           })}
@@ -231,7 +244,7 @@ function RaportSheet({ student, layout, paper, origin }) {
           </tr>
           <tr>
             <td colSpan={2} className="rv3-sum">Nilai rata-rata</td>
-            <td className="nilai">{rataRata != null ? rataRata.toFixed(8) : ''}</td>
+            <td className={isNilaiKurang(rataRata) ? 'nilai kurang' : 'nilai'}>{fmtRata(rataRata)}</td>
           </tr>
           <tr>
             <td colSpan={3} className="rv3-rank">{peringkat ? `Peringkat ke ${peringkat}` : ''}</td>

@@ -125,6 +125,14 @@ export default function Sidebar() {
             <span className="pill" style={{background:'rgba(148,163,184,.15)',color:'var(--muted)',fontSize:9}}>UAS</span>
           </span>
         )}
+        <Link href="/top-santri" className={active('/top-santri')}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 4h8v5a4 4 0 01-8 0V4z"/>
+            <path d="M8 6H5v1a3 3 0 003 3M16 6h3v1a3 3 0 01-3 3"/>
+            <path d="M12 13v4M9 21h6l-1-4h-4l-1 4z"/>
+          </svg>
+          Santri Berprestasi
+        </Link>
         <Link href="/raport-v3" className={active('/raport-v3')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M6 3h7l5 5v13H6z"/>

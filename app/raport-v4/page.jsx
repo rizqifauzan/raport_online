@@ -41,6 +41,20 @@ function TtdImg({ ttd: kalibrasi, image }) {
     />
   );
 }
+/** Cap (stempel) lembaga — menumpang kotak tanda tangan Pimpinan. */
+function CapImg({ ttd: kalibrasi, image }) {
+  if (!image) return null;
+  const ttd = kalibrasi ?? { x: 0, y: 0, scale: 100 };
+  return (
+    <img
+      className="rv3-cap-img"
+      src={image}
+      alt=""
+      style={{ transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})` }}
+    />
+  );
+}
+
 const JUDUL_PRAKTIK = 'UJIAN PRAKTIK';
 const JUDUL_KITABAH = 'UJIAN KITABAH';
 const ROLE_ORTU = 'Orang Tua / Wali Santri';
@@ -90,7 +104,7 @@ const printStyle = (paper) => `
 function RaportSheet({ student, layout, paper, origin }) {
   const {
     periode, kelas: kelasList, students, ujian, ujianNilai,
-    karakter, kenaikan, kenaikanTarget, currentTaLabel, getPimpinan,
+    karakter, kenaikan, kenaikanTarget, currentTaLabel, getPimpinan, getCap,
   } = useStore();
 
   const sheetVars = {
@@ -109,6 +123,7 @@ function RaportSheet({ student, layout, paper, origin }) {
 
   // Pemimpin lembaga untuk T.A. yang sedang ditampilkan (opsional)
   const pimpinan = getPimpinan(kelas?.lembaga ?? 'TPQ');
+  const cap = getCap(kelas?.lembaga ?? 'TPQ');
   const namaPimpinan = namaCetak(pimpinan.nama);
 
   const kelasSiswa = useMemo(
@@ -334,6 +349,7 @@ function RaportSheet({ student, layout, paper, origin }) {
             <div className="rv3-sign-role">{ROLE_PIMPINAN}</div>
             <div className="rv3-sign-space">
               <TtdImg ttd={pimpinan.ttd} image={pimpinan.image}/>
+              <CapImg ttd={cap.ttd} image={cap.image}/>
             </div>
             <div className="rv3-sign-name">{namaPimpinan}</div>
           </div>

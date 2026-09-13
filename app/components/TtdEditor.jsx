@@ -1,8 +1,9 @@
 'use client';
 import { useRef, useState, useLayoutEffect } from 'react';
 
-// Editor tanda tangan bersama — dipakai halaman Guru (tanda tangan wali kelas)
-// dan halaman Tahun Ajaran (tanda tangan pemimpin TPQ / Madin).
+// Editor tanda tangan bersama — dipakai halaman Guru (tanda tangan wali kelas),
+// halaman Tahun Ajaran (tanda tangan pemimpin TPQ / Madin), dan halaman
+// Pengaturan (cap/stempel lembaga).
 
 // Gambar dikecilkan di browser sebelum dikirim, supaya tidak membebani database.
 export const MAX_W = 600;
@@ -63,7 +64,12 @@ export function fileToScaledPng(file) {
  *   - Ctrl/⌘ + roda tetikus → mengubah ukuran tanpa melepas kursor
  * Semuanya menulis nilai yang sama dengan slider.
  */
-export function TtdPreview({ image, ttd, nama, onChange, role = 'Wali Kelas', placeholder = 'Nama Guru' }) {
+export function TtdPreview({
+  image, ttd, nama, onChange,
+  role = 'Wali Kelas', placeholder = 'Nama Guru',
+  latar = null,            // lapisan acuan di belakang (mis. TTD pemimpin saat menata cap)
+  kosong = 'Belum ada tanda tangan',
+}) {
   const kotakRef = useRef(null);
   const gambarRef = useRef(null);
   const aksi = useRef(null);
@@ -145,6 +151,17 @@ export function TtdPreview({ image, ttd, nama, onChange, role = 'Wali Kelas', pl
         onWheel={roda}
       >
         <span className="ttd-preview-guide" />
+        {latar?.image && (
+          <img
+            className="ttd-preview-latar"
+            src={latar.image}
+            alt=""
+            draggable={false}
+            style={{
+              transform: `translate(calc(-50% + ${latar.ttd.x}px), ${latar.ttd.y}px) scale(${latar.ttd.scale / 100})`,
+            }}
+          />
+        )}
         {image ? (
           <img
             ref={gambarRef}
@@ -156,7 +173,7 @@ export function TtdPreview({ image, ttd, nama, onChange, role = 'Wali Kelas', pl
             }}
           />
         ) : (
-          <span className="ttd-preview-empty">Belum ada tanda tangan</span>
+          <span className="ttd-preview-empty">{kosong}</span>
         )}
 
         {interaktif && bingkai && (

@@ -1289,6 +1289,13 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   height: 100%; width: auto; max-width: none; transform-origin: top center;
   z-index: 0;
 }
+/* Lapisan acuan (mis. TTD pemimpin saat menata cap): samar & tak bisa disentuh */
+.ttd-preview-box img.ttd-preview-latar {
+  opacity: .38;
+  filter: grayscale(1);
+  pointer-events: none;
+  z-index: -1;
+}
 /* Sama seperti di raport: teks menang atas gambar */
 .ttd-preview-role,
 .ttd-preview-name { position: relative; z-index: 1; }
@@ -1323,6 +1330,19 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   transform-origin: top center;
   pointer-events: none;
   z-index: 0;
+}
+/* Cap lembaga — menumpang kotak tanda tangan Pimpinan, di atas tanda tangan
+   supaya terlihat seperti stempel yang dibubuhkan setelah menandatangani. */
+.rv3-cap-img {
+  position: absolute; left: 50%; top: 0;
+  height: 100%; width: auto; max-width: none;
+  transform-origin: top center;
+  pointer-events: none;
+  /* z-index sama dengan tanda tangan; urutan DOM yang membuatnya di atas,
+     sekaligus tetap di bawah teks nama/jabatan yang ber-z-index 1. */
+  z-index: 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 /* Jabatan & nama selalu berada di atas gambar tanda tangan, sehingga tetap
    terbaca meskipun tanda tangan meluber melewati kotaknya. */

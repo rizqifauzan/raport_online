@@ -70,6 +70,8 @@ export async function POST(request) {
   }
 }
 
+const LEMBAGA_VALID = new Set(["TPQ", "Madin"]);
+
 async function jalankan(entity, action, b, taId) {
   switch (`${entity}.${action}`) {
     // ── Nilai ujian ──────────────────────────────────────────────────────
@@ -156,6 +158,15 @@ async function jalankan(entity, action, b, taId) {
 
     // ── Pimpinan lembaga ─────────────────────────────────────────────────
     case "pimpinan.set": await db.setPimpinanGuru(taId, b.lembaga, b.guruId); return null;
+
+    // ── Cap (stempel) lembaga ────────────────────────────────────────────
+    case "cap.set": {
+      if (!LEMBAGA_VALID.has(b.lembaga)) {
+        return { tolak: "Lembaga tidak dikenal.", status: 400 };
+      }
+      await db.setCapTtd(b.lembaga, b.ttd ?? {});
+      return null;
+    }
 
     // ── Tahun ajaran ─────────────────────────────────────────────────────
     case "ta.archive": {

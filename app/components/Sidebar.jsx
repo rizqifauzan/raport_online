@@ -167,13 +167,13 @@ export default function Sidebar() {
           Pengguna
           <span className="pill">{users.length}</span>
         </Link>
-        <a href="#">
+        <Link href="/pengaturan" className={active('/pengaturan')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.3 1a7 7 0 00-2.3-1.3L16 3h-4l-.3 2.2A7 7 0 009.4 6.5l-2.3-1-2 3.4 2 1.5A7 7 0 007 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.3-1c.7.5 1.5.9 2.3 1.3L12 21h4l.3-2.2c.8-.3 1.6-.7 2.3-1.3l2.3 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/>
           </svg>
           Pengaturan
-        </a>
+        </Link>
       </nav>
 
       {/* T.A. Selector */}

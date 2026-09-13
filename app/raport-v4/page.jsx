@@ -239,10 +239,10 @@ function RaportSheet({ student, layout, paper, origin }) {
         </tbody>
       </table>
 
-      {/* KETIDAK HADIRAN & AKHLAQ */}
+      {/* AKHLAQ & KETIDAK HADIRAN */}
       <div className="rv3-lower">
         <div>
-          <div className="rv3-box-title">KETIDAK HADIRAN</div>
+          <div className="rv3-box-title">AKHLAQ</div>
           <table className="rv3-tbl">
             <thead>
               <tr>
@@ -267,7 +267,7 @@ function RaportSheet({ student, layout, paper, origin }) {
           </table>
         </div>
         <div>
-          <div className="rv3-box-title">AKHLAQ</div>
+          <div className="rv3-box-title">KETIDAK HADIRAN</div>
           <table className="rv3-tbl">
             <thead>
               <tr>

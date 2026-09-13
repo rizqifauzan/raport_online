@@ -229,9 +229,20 @@ CREATE TABLE IF NOT EXISTS nilai_mapel (
   FOREIGN KEY (ta_id, santri_id) REFERENCES santri(ta_id, id) ON DELETE CASCADE
 );
 
+-- ── Cap (stempel) lembaga ────────────────────────────────────────────────
+-- Hanya kalibrasi posisinya; gambarnya menumpang tabel `guru_ttd` dengan
+-- kunci sintetis 'cap:<lembaga>'. Berlaku lintas tahun ajaran, seperti guru.
+CREATE TABLE IF NOT EXISTS lembaga_cap (
+  lembaga   TEXT PRIMARY KEY,
+  cap_x     INTEGER NOT NULL DEFAULT 0,
+  cap_y     INTEGER NOT NULL DEFAULT 0,
+  cap_scale INTEGER NOT NULL DEFAULT 100
+);
+
 -- ── Tanda tangan (dari penyimpanan lama, bentuknya tidak diubah) ─────────
 -- Didefinisikan di sini supaya pemasangan baru tetap lengkap. `guru_id`
--- juga menampung kunci sintetis pimpinan arsip, jadi tanpa foreign key.
+-- juga menampung kunci sintetis pimpinan arsip dan cap lembaga, jadi tanpa
+-- foreign key.
 CREATE TABLE IF NOT EXISTS guru_ttd (
   tenant     TEXT NOT NULL,
   guru_id    TEXT NOT NULL,

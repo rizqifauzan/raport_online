@@ -1,7 +1,8 @@
 'use client';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { normalizeUsers, normalizeGurus, migrateWaliKelas, normalizePimpinan,
-  periodeAwal, pimpinanTtdKey, PIMPINAN_DEFAULT, TTD_DEFAULT } from '../lib/data';
+  periodeAwal, pimpinanTtdKey, PIMPINAN_DEFAULT, TTD_DEFAULT,
+  capTtdKey, CAP_DEFAULT, normalizeCap } from '../lib/data';
 
 const Store = createContext(null);
 
@@ -31,6 +32,9 @@ export function StoreProvider({ children }) {
   const [history, setHistory] = useState([]);
   const [currentTaLabel, setCurrentTaLabel] = useState('');
   const [pimpinan, setPimpinanState] = useState(() => normalizePimpinan(PIMPINAN_DEFAULT));
+
+  // Kalibrasi cap tiap lembaga; gambarnya ikut `signatures` (kunci cap:<lembaga>).
+  const [cap, setCapState] = useState(() => normalizeCap(null));
 
   // { guruId: dataUrl } — dimuat terpisah lewat /api/signature karena besar.
   const [signatures, setSignatures] = useState({});
@@ -70,6 +74,7 @@ export function StoreProvider({ children }) {
     setHistory(d.history ?? []);
     setCurrentTaLabel(d.currentTaLabel ?? '');
     setPimpinanState(normalizePimpinan(d.pimpinan));
+    setCapState(normalizeCap(d.cap));
   }
 
   /** Muat ulang seluruh state dari server. */
@@ -503,6 +508,38 @@ export function StoreProvider({ children }) {
     };
   }
 
+  // ── Cap (stempel) lembaga ───────────────────────────────────────────────
+
+  /**
+   * Geser / ubah ukuran cap satu lembaga. Berlaku lintas tahun ajaran —
+   * cap adalah milik lembaga, bukan milik satu T.A.
+   */
+  function setCapTtd(namaLembaga, patch) {
+    const sebelum = cap;
+    const baru = { ...cap[namaLembaga], ...patch };
+    setCapState(prev => ({ ...prev, [namaLembaga]: baru }));
+    kirim({ entity: 'cap', action: 'set', lembaga: namaLembaga, ttd: baru },
+      () => setCapState(sebelum));
+  }
+
+  /** Simpan gambar cap satu lembaga (data URL PNG). */
+  function setCapImage(namaLembaga, dataUrl) {
+    return setSignature(capTtdKey(namaLembaga), dataUrl);
+  }
+
+  /** Hapus gambar cap satu lembaga. */
+  function removeCapImage(namaLembaga) {
+    return removeSignature(capTtdKey(namaLembaga));
+  }
+
+  /** Cap siap pakai untuk raport: kalibrasi + gambar (null bila belum ada). */
+  function getCap(namaLembaga) {
+    return {
+      ttd: { ...CAP_DEFAULT, ...(cap[namaLembaga] ?? {}) },
+      image: signatures[capTtdKey(namaLembaga)] ?? null,
+    };
+  }
+
   // ── Tahun ajaran ────────────────────────────────────────────────────────
 
   /**
@@ -560,6 +597,7 @@ export function StoreProvider({ children }) {
       setSignature, removeSignature,
 
       // Pemimpin lembaga per tahun ajaran
+      cap, setCapTtd, setCapImage, removeCapImage, getCap,
       pimpinan,
       setPimpinanGuru,
       getPimpinan,

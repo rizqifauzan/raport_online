@@ -1267,10 +1267,19 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
 .ttd-preview-box.bisa-seret:hover { background: rgba(13,148,136,.04); }
 .ttd-preview-box.sedang-geser { cursor: grabbing; background: rgba(13,148,136,.07); }
 .ttd-preview-box.sedang-ukur  { background: rgba(13,148,136,.07); }
+.ttd-preview-box.sedang-putar { background: rgba(13,148,136,.07); cursor: grabbing; }
 
-/* Bingkai & pegangan ukuran — meniru gambar terpilih di pengolah kata */
+/* Bingkai & pegangan ukuran — meniru gambar terpilih di pengolah kata.
+   Pembungkusnya ikut diputar bersama gambar (poros "top center" yang sama),
+   jadi bingkai dan pegangan selalu menempel pada sisi gambar. */
+.ttd-frame-wrap {
+  position: absolute; z-index: 2;
+  transform-origin: top center;
+  pointer-events: none;                /* hanya pegangannya yang bisa disentuh */
+}
+.ttd-frame-wrap .ttd-handle { pointer-events: auto; }
 .ttd-frame {
-  position: absolute; z-index: 2; pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none;
   outline: 1px dashed rgba(13,148,136,.55);
   outline-offset: 1px;
 }
@@ -1283,18 +1292,33 @@ input:disabled, select:disabled { opacity:.55; cursor:not-allowed; background:va
   touch-action: none;
 }
 .ttd-handle:hover { background: var(--brand-100); }
+/* Pegangan putar: bulat, digantung di bawah gambar dengan tali penghubung. */
+.ttd-handle.putar {
+  left: 50%; top: 100%;
+  width: 17px; height: 17px; margin: 16px 0 0 -8.5px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--brand); cursor: grab;
+}
+.ttd-handle.putar:active { cursor: grabbing; }
+.ttd-handle.putar::before {
+  content: ''; position: absolute; left: 50%; bottom: 100%;
+  width: 1px; height: 16px; margin-left: -.5px;
+  background: rgba(13,148,136,.55);
+}
 .ttd-preview-box.bisa-seret img { pointer-events: none; }
 .ttd-preview-box img {
   position: absolute; left: 50%; top: 0;
   height: 100%; width: auto; max-width: none; transform-origin: top center;
   z-index: 0;
 }
-/* Lapisan acuan (mis. TTD pemimpin saat menata cap): samar & tak bisa disentuh */
+/* Lapisan acuan (mis. TTD pemimpin saat menata cap): tampil apa adanya supaya
+   posisi cap terhadap tanda tangan terlihat persis seperti hasil cetak. */
 .ttd-preview-box img.ttd-preview-latar {
-  opacity: .38;
-  filter: grayscale(1);
   pointer-events: none;
-  z-index: -1;
+  /* z-index tetap 0 seperti gambar utama — z-index negatif akan membuatnya
+     tersembunyi di balik latar kartu. Urutan DOM yang menaruh cap di atasnya. */
+  z-index: 0;
 }
 /* Sama seperti di raport: teks menang atas gambar */
 .ttd-preview-role,

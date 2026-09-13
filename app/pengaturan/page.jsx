@@ -6,7 +6,7 @@ import { useStore } from '../store';
 import { LEMBAGA_LIST, CAP_DEFAULT, namaCetak } from '../../lib/data';
 import {
   TtdPreview, fileToScaledPng,
-  MAX_W, MAX_H, BATAS_X, BATAS_Y, SKALA_MIN, SKALA_MAX,
+  MAX_W, MAX_H, BATAS_X, BATAS_Y, SKALA_MIN, SKALA_MAX, PUTAR_MIN, PUTAR_MAX,
 } from '../components/TtdEditor';
 
 /**
@@ -34,7 +34,7 @@ function CapCard({ lembaga }) {
   // tab lain). Isian ikut disegarkan HANYA selama pemakai belum menyentuhnya,
   // supaya penataan yang sedang berjalan tidak tertimpa.
   const [tersentuh, setTersentuh] = useState(false);
-  const kunciServer = `${tersimpan.image ?? ''}|${tersimpan.ttd.x},${tersimpan.ttd.y},${tersimpan.ttd.scale}`;
+  const kunciServer = `${tersimpan.image ?? ''}|${tersimpan.ttd.x},${tersimpan.ttd.y},${tersimpan.ttd.scale},${tersimpan.ttd.rot}`;
   const [kunciTerpasang, setKunciTerpasang] = useState(kunciServer);
   if (kunciServer !== kunciTerpasang && !tersentuh && !busy) {
     setKunciTerpasang(kunciServer);
@@ -52,7 +52,8 @@ function CapCard({ lembaga }) {
     draftImage !== tersimpan.image ||
     ttd.x !== tersimpan.ttd.x ||
     ttd.y !== tersimpan.ttd.y ||
-    ttd.scale !== tersimpan.ttd.scale;
+    ttd.scale !== tersimpan.ttd.scale ||
+    ttd.rot !== tersimpan.ttd.rot;
 
   async function handlePickFile(e) {
     const file = e.target.files?.[0];
@@ -86,7 +87,7 @@ function CapCard({ lembaga }) {
         await removeCapImage(lembaga);
       }
       setCapTtd(lembaga, ttd);
-      setKunciTerpasang(`${draftImage ?? ''}|${ttd.x},${ttd.y},${ttd.scale}`);
+      setKunciTerpasang(`${draftImage ?? ''}|${ttd.x},${ttd.y},${ttd.scale},${ttd.rot}`);
       setTersentuh(false);
       setOkMsg('Cap tersimpan');
     } finally {
@@ -138,14 +139,17 @@ function CapCard({ lembaga }) {
             role={`Pimpinan ${lembaga}`}
             kosong="Belum ada cap"
             latar={pimpinan.image ? { image: pimpinan.image, ttd: pimpinan.ttd } : null}
+            bisaPutar
             onChange={isHistory ? undefined : setTtd}
           />
 
           {draftImage && (
             <p className="muted" style={{fontSize:11.5,margin:'7px 0 0',lineHeight:1.5}}>
               Seret cap untuk menggeser, tarik titik di sudutnya untuk mengubah ukuran
-              (Ctrl + roda tetikus juga bisa). Tanda tangan pemimpin ditampilkan samar
-              sebagai acuan.
+              (Ctrl + roda tetikus juga bisa), dan tarik pegangan bulat di bawahnya untuk
+              memutar. {pimpinan.image
+                ? 'Tanda tangan pemimpin ikut ditampilkan supaya posisi cap terhadapnya terlihat persis seperti hasil cetak.'
+                : 'Tanda tangan pemimpin belum ada — tetapkan pemimpin lembaga di halaman Tahun Ajaran agar bisa dipakai sebagai acuan posisi.'}
             </p>
           )}
 
@@ -164,6 +168,11 @@ function CapCard({ lembaga }) {
               <span>Ukuran<b>{ttd.scale}%</b></span>
               <input type="range" min={SKALA_MIN} max={SKALA_MAX} value={ttd.scale} disabled={isHistory}
                 onChange={e => setTtd({ scale: Number(e.target.value) })}/>
+            </label>
+            <label>
+              <span>Putar<b>{ttd.rot > 0 ? `+${ttd.rot}` : ttd.rot}°</b></span>
+              <input type="range" min={PUTAR_MIN} max={PUTAR_MAX} value={ttd.rot} disabled={isHistory}
+                onChange={e => setTtd({ rot: Number(e.target.value) })}/>
             </label>
             <button type="button" className="btn sm ghost" disabled={isHistory}
               onClick={() => setTtd({ ...CAP_DEFAULT })}>

@@ -236,8 +236,12 @@ CREATE TABLE IF NOT EXISTS lembaga_cap (
   lembaga   TEXT PRIMARY KEY,
   cap_x     INTEGER NOT NULL DEFAULT 0,
   cap_y     INTEGER NOT NULL DEFAULT 0,
-  cap_scale INTEGER NOT NULL DEFAULT 100
+  cap_scale INTEGER NOT NULL DEFAULT 100,
+  cap_rot   INTEGER NOT NULL DEFAULT 0
 );
+
+-- Pemasangan yang tabelnya sudah terlanjur dibuat tanpa kolom sudut putar.
+ALTER TABLE lembaga_cap ADD COLUMN IF NOT EXISTS cap_rot INTEGER NOT NULL DEFAULT 0;
 
 -- ── Tanda tangan (dari penyimpanan lama, bentuknya tidak diubah) ─────────
 -- Didefinisikan di sini supaya pemasangan baru tetap lengkap. `guru_id`

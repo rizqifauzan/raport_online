@@ -4,6 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import Sidebar from '../components/Sidebar';
 import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
+import { transformGambar } from '../components/TtdEditor';
 import { namaCetak, labelKelasInline } from '../../lib/data';
 
 // Nilai di bawah 60 ditandai merah (angka saja; nilai teks/kustom diabaikan).
@@ -41,16 +42,19 @@ function TtdImg({ ttd: kalibrasi, image }) {
     />
   );
 }
-/** Cap (stempel) lembaga — menumpang kotak tanda tangan Pimpinan. */
+/**
+ * Cap (stempel) lembaga — menumpang kotak tanda tangan Pimpinan.
+ * Sudut putarnya dipakai agar cap bisa miring seperti stempel asli.
+ */
 function CapImg({ ttd: kalibrasi, image }) {
   if (!image) return null;
-  const ttd = kalibrasi ?? { x: 0, y: 0, scale: 100 };
+  const ttd = { x: 0, y: 0, scale: 100, rot: 0, ...(kalibrasi ?? {}) };
   return (
     <img
       className="rv3-cap-img"
       src={image}
       alt=""
-      style={{ transform: `translate(calc(-50% + ${ttd.x}px), ${ttd.y}px) scale(${ttd.scale / 100})` }}
+      style={{ transform: transformGambar(ttd) }}
     />
   );
 }

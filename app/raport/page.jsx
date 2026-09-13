@@ -5,6 +5,14 @@ import HistoryBanner from '../components/HistoryBanner';
 import { useStore } from '../store';
 import { calcRata, getInitials, getPredikat } from '../../lib/data';
 
+// Nilai di bawah 60 ditandai merah (angka saja; nilai teks/kustom diabaikan).
+const KKM_MERAH = 60;
+function isNilaiKurang(v) {
+  if (v == null || v === '') return false;
+  const n = Number(v);
+  return Number.isFinite(n) && n < KKM_MERAH;
+}
+
 export default function RaportPage() {
   const { lembaga, setLembaga, periode, setPeriode, students, grades, mapel, kelas: kelasList } = useStore();
   const mapelList = mapel[lembaga] ?? [];
@@ -190,9 +198,9 @@ export default function RaportPage() {
                       <tr key={r.id}>
                         <td className="no">{i+1}</td>
                         <td>{r.label}</td>
-                        <td className="c">{r.p ?? '—'}</td>
-                        <td className="c">{r.t ?? '—'}</td>
-                        <td className="c akhir">{r.rata ?? '—'}</td>
+                        <td className={isNilaiKurang(r.p) ? 'c kurang' : 'c'}>{r.p ?? '—'}</td>
+                        <td className={isNilaiKurang(r.t) ? 'c kurang' : 'c'}>{r.t ?? '—'}</td>
+                        <td className={isNilaiKurang(r.rata) ? 'c akhir kurang' : 'c akhir'}>{r.rata ?? '—'}</td>
                         <td className="c">
                           {pred ? <span className={`pred ${pred.cls}`}>{pred.label}</span> : '—'}
                         </td>
@@ -203,7 +211,7 @@ export default function RaportPage() {
                 <tfoot>
                   <tr>
                     <td colSpan={4} style={{textAlign:'right'}}>Rata-rata Nilai Akhir</td>
-                    <td className="c">{rataAkhir ?? '—'}</td>
+                    <td className={isNilaiKurang(rataAkhir) ? 'c kurang' : 'c'}>{rataAkhir ?? '—'}</td>
                     <td className="c">
                       {predAkhir ? <span className={`pred ${predAkhir.cls}`}>{predAkhir.label}</span> : '—'}
                     </td>

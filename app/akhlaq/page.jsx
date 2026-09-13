@@ -178,11 +178,11 @@ export default function AkhlaqPage() {
               <table className="grade">
                 <thead>
                   <tr>
-                    <th className="sticky-th" style={{textAlign:'left',padding:'9px 14px',minWidth:220,borderBottom:'1px solid var(--line)'}}>
+                    <th rowSpan={2} className="sticky-th" style={{textAlign:'left',padding:'9px 14px',minWidth:220,borderBottom:'1px solid var(--line)'}}>
                       Santri
                     </th>
-                    <th colSpan={3} className="mapel-th">Kepribadian</th>
-                    <th colSpan={2} className="mapel-th" style={{background:'#5c3d0a',color:'#fef3c7'}}>Ketidakhadiran (hari)</th>
+                    <th colSpan={AKHLAQ_COLS.length} className="mapel-th">Kepribadian</th>
+                    <th colSpan={KEHADIRAN_COLS.length} className="mapel-th" style={{background:'#5c3d0a',color:'#fef3c7'}}>Ketidakhadiran (hari)</th>
                   </tr>
                   <tr>
                     {AKHLAQ_COLS.map(c => (
@@ -195,7 +195,7 @@ export default function AkhlaqPage() {
                 </thead>
                 <tbody>
                   {kelasSiswa.length === 0 ? (
-                    <tr><td colSpan={6} style={{textAlign:'center',padding:32,color:'var(--muted)'}}>
+                    <tr><td colSpan={1 + AKHLAQ_COLS.length + KEHADIRAN_COLS.length} style={{textAlign:'center',padding:32,color:'var(--muted)'}}>
                       Belum ada santri — tambah dari halaman Siswa &amp; Kelas
                     </td></tr>
                   ) : kelasSiswa.map((s, idx) => {

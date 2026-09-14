@@ -9,6 +9,9 @@ import { namaCetak, labelKelasInline } from '../../lib/data';
 
 // Nilai di bawah 60 ditandai merah (angka saja; nilai teks/kustom diabaikan).
 const KKM_MERAH = 60;
+// Mapel yang ada di kelas tapi nilainya belum terisi (belum ikut ujian) ditandai
+// "–", supaya beda dari nilai 0 yang berarti ikut ujian tapi tidak dapat nilai.
+const TANDA_KOSONG = '–';
 function isNilaiKurang(v) {
   if (v == null || v === '') return false;
   const n = Number(v);
@@ -228,7 +231,7 @@ function RaportSheet({ student, layout, paper, origin }) {
               <tr key={`p-${i}`}>
                 <td className="no">{i + 1}</td>
                 <td>{u?.nama ?? ''}</td>
-                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{val ?? ''}</td>
+                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{u ? (val ?? TANDA_KOSONG) : ''}</td>
               </tr>
             );
           })}
@@ -253,7 +256,7 @@ function RaportSheet({ student, layout, paper, origin }) {
               <tr key={`k-${i}`}>
                 <td className="no">{i + 1}</td>
                 <td>{u?.nama ?? ''}</td>
-                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{val ?? ''}</td>
+                <td className={isNilaiKurang(val) ? 'nilai kurang' : 'nilai'}>{u ? (val ?? TANDA_KOSONG) : ''}</td>
               </tr>
             );
           })}
@@ -266,7 +269,7 @@ function RaportSheet({ student, layout, paper, origin }) {
             <td className={isNilaiKurang(rataRata) ? 'nilai kurang' : 'nilai'}>{fmtRata(rataRata)}</td>
           </tr>
           <tr>
-            <td colSpan={3} className="rv3-rank">{peringkat ? `Peringkat ke ${peringkat}` : ''}</td>
+            <td colSpan={3} className="rv3-rank">{peringkat ? `Peringkat ke ${peringkat} dari ${kelasSiswa.length} santri` : ''}</td>
           </tr>
         </tbody>
       </table>
